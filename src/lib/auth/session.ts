@@ -1,0 +1,46 @@
+import "server-only";
+import { cache } from "react";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth/server";
+import { can, type Permission, type Role } from "@/lib/auth/permissions";
+import { ForbiddenError, UnauthorizedError } from "@/lib/errors";
+import { ROUTES } from "@/lib/constants/routes";
+
+export const getSession = cache(async () => {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    return session?.user && !session.user.banned ? session : null;
+  } catch {
+    return null;
+  }
+});
+
+function loginUrl(next: string) {
+  return `${ROUTES.login}?next=${encodeURIComponent(next)}`;
+}
+export async function requireUser(next = ROUTES.dashboard) {
+  const session = await getSession();
+  if (!session) redirect(loginUrl(next));
+  return session.user;
+}
+export async function assertUser() {
+  const session = await getSession();
+  if (!session) throw new UnauthorizedError();
+  return session.user;
+}
+export async function requireRole(roles: readonly Role[]) {
+  const user = await requireUser();
+  if (!roles.includes(user.role as Role)) throw new ForbiddenError();
+  return user;
+}
+export async function requirePermission(permission: Permission) {
+  const user = await requireUser();
+  if (!can(user, permission)) throw new ForbiddenError();
+  return user;
+}
+export async function assertPermission(permission: Permission) {
+  const user = await assertUser();
+  if (!can(user, permission)) throw new ForbiddenError();
+  return user;
+}

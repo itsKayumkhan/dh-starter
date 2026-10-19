@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DH Starter
 
-## Getting Started
+A reusable Next.js 16 full stack starter for Digital Heroes projects. Core provides PostgreSQL through Prisma 7, Better Auth, email transport, role permissions, audit logs, rate limiting, and an app shell. Project features belong in removable modules.
 
-First, run the development server:
+## Quick start
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Run `npm install` and copy `.env.example` to `.env`.
+2. Run `npm run db:dev` in one terminal. Copy the TCP PostgreSQL URL it prints into `DATABASE_URL` in `.env`.
+3. Run `npm run db:migrate`, then `npm run db:seed`.
+4. Run `npm run dev` and open `http://localhost:3000`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Docker alternative: run `docker compose up -d postgres` and set `DATABASE_URL=postgres://postgres:postgres@localhost:5432/dhstarter` before migrating. Set a unique `BETTER_AUTH_SECRET` and a real email provider before production.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Development seed logins:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Role  | Email                | Password            |
+| ----- | -------------------- | ------------------- |
+| admin | admin@dhstarter.test | DhStarter@Admin2026 |
+| staff | staff@dhstarter.test | DhStarter@Staff2026 |
+| user  | user@dhstarter.test  | DhStarter@User2026  |
 
-## Learn More
+The seed is idempotent and uses Better Auth to create password accounts. It then marks seed users verified and assigns roles. Do not run it against production.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Script                                                                    | Purpose                      |
+| ------------------------------------------------------------------------- | ---------------------------- |
+| `dev`, `build`, `start`                                                   | Next.js lifecycle            |
+| `lint`, `typecheck`, `format`                                             | Source checks and formatting |
+| `test`, `test:e2e`                                                        | Unit and browser tests       |
+| `db:dev`, `db:migrate`, `db:generate`, `db:seed`, `db:studio`, `db:reset` | Prisma workflow              |
+| `module:list`, `module:remove`                                            | Inspect and remove modules   |
+| `email:dev`                                                               | React Email template preview |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Starting a client project
 
-## Deploy on Vercel
+Copy this repository for the client. Update `src/config/site.ts`, public brand assets, `.env`, and `docs/PRODUCTION_CHECKLIST.md`. Run `npm run module:list` and remove unused modules with `npm run module:remove -- <id> --dry-run` followed by the same command without `--dry-run`. See `docs/MODULES.md` for the manifest contract. Run a Prisma migration after removing database-backed modules.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Core APIs and security rules are in `docs/ARCHITECTURE.md`. Protected actions and route handlers check auth on the server. Proxy checks only cookie presence for navigation.

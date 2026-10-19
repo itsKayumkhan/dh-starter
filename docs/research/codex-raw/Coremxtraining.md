@@ -28,7 +28,7 @@
 | SEO | Metadata, structured data, sitemap, robots and OG images. `src/app/layout.tsx`, `src/app/sitemap.ts`, `src/app/robots.ts`, `src/components/seo/` |
 | Testing | E2E script declared, but no test files or Playwright config found. `package.json` |
 | CI/CD | Vercel config and PR template; no CI workflow found. `vercel.json`, `.github/` |
-| DB migrations/seeds | Prisma migration history and seed script. `prisma/migrations/`, `prisma/seed.ts` |
+| DB migrations/seeds | Prisma migration history and seed script. `prisma/migrations/`, `prisma/seed.mts` |
 | Cron/background jobs | None found; some email work is launched asynchronously. `src/app/api/auth/verify-email/route.ts` |
 | Realtime | None found. `package.json` |
 

@@ -100,7 +100,7 @@ src/
 }
 ```
 
-`src/config/modules.ts` imports each module's `module.ts` on a line ending with `// module:<id>` and lists it in `installedModules` on a line ending with `// module:<id>`. `scripts/module-remove.ts` deletes `paths` + `prismaFiles`, removes those marked lines, removes `envKeys` from `.env.example`, and runs `npm uninstall` for `packages` not used elsewhere. Then the dev runs `npx prisma migrate dev` to drop the tables.
+`src/config/modules.ts` imports each module's `module.ts` on a line ending with `// module:<id>` and lists it in `installedModules` on a line ending with `// module:<id>`. `scripts/module-remove.mts` deletes `paths` + `prismaFiles`, removes those marked lines, removes `envKeys` from `.env.example`, and runs `npm uninstall` for `packages` not used elsewhere. Then the dev runs `npx prisma migrate dev` to drop the tables.
 
 Module rules:
 - A module imports from core (`@/lib`, `@/components`, `@/config/site`) and never from another module, unless listed in `dependsOn`.
@@ -121,7 +121,7 @@ Module rules:
 - Stripe webhooks: verify signature, claim `event.id` in `WebhookEvent` (unique), process, mark done; a failed run releases the claim so Stripe retries.
 - Uploads are always signed; type and size checked on the server.
 - Admin lists paginate on the server.
-- No dev backdoors. Seed logins exist only through `prisma/seed.ts` and are listed in `docs/PRODUCTION_CHECKLIST.md`.
+- No dev backdoors. Seed logins exist only through `prisma/seed.mts` and are listed in `docs/PRODUCTION_CHECKLIST.md`.
 
 ## Seed logins (dev only)
 
