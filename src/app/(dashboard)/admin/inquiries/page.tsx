@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
 import type { Metadata } from "next";
 import { requirePermission } from "@/lib/auth/session";
 import { buildMetadata } from "@/lib/seo";
@@ -14,7 +16,7 @@ export const metadata: Metadata = buildMetadata({
   noIndex: true,
 });
 
-export default async function InquiriesPage({
+async function InquiriesPageContent({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -42,4 +44,8 @@ export default async function InquiriesPage({
       <InquiriesTable data={results.data} pageCount={pageCount(results.total, params.pageSize)} />
     </main>
   );
+}
+
+export default function InquiriesPage(props: Parameters<typeof InquiriesPageContent>[0]) {
+  return <Suspense fallback={<PageSkeleton title="Inquiries" />}><InquiriesPageContent {...props} /></Suspense>;
 }

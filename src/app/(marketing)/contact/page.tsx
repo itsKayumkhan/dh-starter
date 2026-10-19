@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Mail, MapPin } from "lucide-react";
 import { site } from "@/config/site";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { buildMetadata } from "@/lib/seo";
 import { ContactFormWithToken } from "@/modules/contact/components/contact-form-with-token";
 import { CONTACT_ROUTES } from "@/modules/contact/routes";
@@ -25,7 +27,7 @@ export default function ContactPage() {
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(260px,1fr)]">
         <Card>
           <CardHeader><CardTitle>Send an inquiry</CardTitle></CardHeader>
-          <CardContent><ContactFormWithToken /></CardContent>
+          <CardContent><Suspense fallback={<div className="space-y-4" aria-busy="true"><Skeleton className="h-16 w-full" /><Skeleton className="h-16 w-full" /><Skeleton className="h-36 w-full" /><Skeleton className="h-10 w-32" /></div>}><ContactFormWithToken /></Suspense></CardContent>
         </Card>
         <aside className="space-y-6 rounded-xl border border-border bg-muted/30 p-6 sm:p-8">
           <h2 className="text-xl font-semibold">Business details</h2>

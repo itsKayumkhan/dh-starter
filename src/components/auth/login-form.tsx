@@ -57,7 +57,6 @@ export function LoginForm({
         return;
       }
       router.replace(destination);
-      router.refresh();
     } catch {
       setFormError("Unable to sign in. Try again.");
     }

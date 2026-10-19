@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Mail } from "lucide-react";
@@ -12,7 +14,7 @@ import { CONTACT_ROUTES } from "@/modules/contact/routes";
 import { inquiryIdSchema } from "@/modules/contact/schemas/inquiry";
 import { getInquiry } from "@/modules/contact/server/inquiries";
 
-export default async function InquiryDetailPage({
+async function InquiryDetailPageContent({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -82,4 +84,8 @@ export default async function InquiryDetailPage({
       </div>
     </main>
   );
+}
+
+export default function InquiryDetailPage(props: Parameters<typeof InquiryDetailPageContent>[0]) {
+  return <Suspense fallback={<PageSkeleton title="Inquiry details" variant="cards" />}><InquiryDetailPageContent {...props} /></Suspense>;
 }

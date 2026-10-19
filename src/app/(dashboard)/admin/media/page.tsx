@@ -1,10 +1,12 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
 import { requirePermission } from "@/lib/auth/session";
 import { pageCount, parseListParams } from "@/lib/pagination";
 import { MediaLibrary } from "@/modules/uploads/components/media-library";
 import { listMedia } from "@/modules/uploads/server/media";
 import { uploadFolderSchema } from "@/modules/uploads/upload-rules";
 
-export default async function MediaPage({
+async function MediaPageContent({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -34,4 +36,8 @@ export default async function MediaPage({
       folder={folder}
     />
   );
+}
+
+export default function MediaPage(props: Parameters<typeof MediaPageContent>[0]) {
+  return <Suspense fallback={<PageSkeleton title="Media library" />}><MediaPageContent {...props} /></Suspense>;
 }

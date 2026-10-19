@@ -1,5 +1,7 @@
 "use client"
 
+import { formatDate, formatMonth } from "@/lib/format";
+
 import * as React from "react"
 import { cn } from "cn"
 import {
@@ -11,6 +13,10 @@ import {
 
 import { Button, buttonVariants } from "@/components/ui/button"
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
+
+function calendarDayUtc(date: Date) {
+  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+}
 
 function Calendar({
   className,
@@ -40,7 +46,7 @@ function Calendar({
       locale={locale}
       formatters={{
         formatMonthDropdown: (date) =>
-          date.toLocaleString(locale?.code, { month: "short" }),
+          formatMonth(calendarDayUtc(date), locale?.code),
         ...formatters,
       }}
       classNames={{
@@ -199,7 +205,7 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString(locale?.code)}
+      data-day={formatDate(calendarDayUtc(day.date), locale?.code)}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&

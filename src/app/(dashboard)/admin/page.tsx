@@ -1,7 +1,9 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
 import Link from "next/link";
 import { Ban, CircleHelp, Clock3, UsersRound } from "lucide-react";
 import { installedModules } from "@/config/modules";
-import { getAdminOverview } from "@/app/(dashboard)/admin/_data/overview";
+import { getAdminOverview } from "@/modules/admin/server/overview";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatCard } from "@/components/shared/stat-card";
@@ -10,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { can } from "@/lib/auth/permissions";
 import { requireRole } from "@/lib/auth/session";
 
-export default async function AdminPage() {
+async function AdminPageContent() {
   const user = await requireRole(["staff", "admin"]);
   const counts = await getAdminOverview();
   const links = installedModules.flatMap((module) => module.nav)
@@ -31,4 +33,8 @@ export default async function AdminPage() {
       </CardContent>
     </Card>
   </section>;
+}
+
+export default function AdminPage() {
+  return <Suspense fallback={<PageSkeleton title="Admin overview" variant="cards" />}><AdminPageContent /></Suspense>;
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { formatBytes } from "@/lib/format";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Clipboard, Images, Search, Trash2, Upload } from "lucide-react";
@@ -193,7 +195,7 @@ export function MediaLibrary({
                   {media.alt || media.publicId}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  {media.folder} · {(media.bytes / 1024).toFixed(0)} KB ·{" "}
+                  {media.folder} · {formatBytes(media.bytes)} ·{" "}
                   {media.format.toUpperCase()}
                 </p>
                 <div className="flex flex-wrap gap-2">

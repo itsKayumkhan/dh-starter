@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
 import { requirePermission } from "@/lib/auth/session";
 import { parseListParams, pageCount } from "@/lib/pagination";
 import { PageHeader } from "@/components/shared/page-header";
@@ -8,7 +10,7 @@ import { AuditTable } from "@/modules/admin/components/audit-table";
 import { ADMIN_ROUTES } from "@/modules/admin/routes";
 import { listAuditActions, listAuditLogs } from "@/modules/admin/server/queries";
 
-export default async function AuditPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+async function AuditPageContent({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requirePermission("audit:read");
   const params = parseListParams(await searchParams, { sortable: ["action", "createdAt"], filters: ["action", "actor", "from", "to"], defaultSort: { field: "createdAt", dir: "desc" } });
   const [result, actions] = await Promise.all([listAuditLogs({ ...params, sort: { field: params.sort.field, dir: params.sort.dir === "asc" ? "asc" : "desc" } }), listAuditActions()]);
@@ -25,4 +27,8 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
     </form>
     <AuditTable data={result.data} pageCount={pageCount(result.total, params.pageSize)} actions={actions} />
   </main>;
+}
+
+export default function AuditPage(props: Parameters<typeof AuditPageContent>[0]) {
+  return <Suspense fallback={<PageSkeleton title="Audit log" />}><AuditPageContent {...props} /></Suspense>;
 }

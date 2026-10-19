@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
 import { z } from "zod";
 import { ResetPasswordForm } from "@/components/auth/reset-password-form";
 import { buildMetadata } from "@/lib/seo";
@@ -7,7 +9,7 @@ export const metadata = buildMetadata({
   noIndex: true,
 });
 
-export default async function ResetPasswordPage({
+async function ResetPasswordPageContent({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -24,4 +26,8 @@ export default async function ResetPasswordPage({
       invalid={Boolean(parsed.success && parsed.data.error)}
     />
   );
+}
+
+export default function ResetPasswordPage(props: Parameters<typeof ResetPasswordPageContent>[0]) {
+  return <Suspense fallback={<PageSkeleton title="Reset password" variant="form" />}><ResetPasswordPageContent {...props} /></Suspense>;
 }

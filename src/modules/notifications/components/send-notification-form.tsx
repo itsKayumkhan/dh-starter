@@ -35,6 +35,7 @@ export function SendNotificationForm() {
     resolver: zodResolver(adminSendSchema),
     defaultValues: {
       target: "user",
+      role: "user",
       userId: "",
       title: "",
       body: "",

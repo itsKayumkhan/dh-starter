@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
 import { Activity, CircleCheck, Clock3, FolderKanban, Inbox } from "lucide-react";
 import { DemoActivityChart } from "@/components/layout/demo-activity-chart";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -6,7 +8,7 @@ import { StatCard } from "@/components/shared/stat-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth/session";
 
-export default async function DashboardPage() {
+async function DashboardPageContent() {
   const user = await requireUser();
   const firstName = user.name.trim().split(/\s+/)[0] || "there";
   return <section className="space-y-6">
@@ -29,4 +31,8 @@ export default async function DashboardPage() {
       </Card>
     </div>
   </section>;
+}
+
+export default function DashboardPage() {
+  return <Suspense fallback={<PageSkeleton title="Dashboard" variant="cards" />}><DashboardPageContent /></Suspense>;
 }

@@ -4,6 +4,8 @@ export const site = {
   name: "DH Starter",
   url: APP_URL,
   description: "A reusable foundation for Digital Heroes projects.",
+  locale: "en-US",
+  timeZone: "UTC",
   logo: "/logo.svg",
   colors: {
     primary: "#0f172a",

@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
 import Link from "next/link";
 import { CreditCard } from "lucide-react";
 import { requireUser } from "@/lib/auth/session";
@@ -16,7 +18,7 @@ import { getMyBillingOverview } from "@/modules/billing/server/queries";
 
 export const metadata = buildMetadata({ title: "Billing", path: BILLING_ROUTES.dashboard, noIndex: true });
 
-export default async function BillingPage() {
+async function BillingPageContent() {
   await requireUser();
   const { subscription, payments } = await getMyBillingOverview();
   const currentPlan = billingPlans.find((plan) => plan.id === subscription?.planId);
@@ -58,4 +60,8 @@ export default async function BillingPage() {
       </Table> : <EmptyState title="No payments yet" description="Payments will appear here after checkout." />}
     </section>
   </main>;
+}
+
+export default function BillingPage() {
+  return <Suspense fallback={<PageSkeleton title="Billing" variant="cards" />}><BillingPageContent /></Suspense>;
 }

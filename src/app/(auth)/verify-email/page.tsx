@@ -1,10 +1,12 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
 import { z } from "zod";
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({ title: "Verify email", noIndex: true });
 
-export default async function VerifyEmailPage({
+async function VerifyEmailPageContent({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -21,4 +23,8 @@ export default async function VerifyEmailPage({
       error={Boolean(parsed.success && parsed.data.error)}
     />
   );
+}
+
+export default function VerifyEmailPage(props: Parameters<typeof VerifyEmailPageContent>[0]) {
+  return <Suspense fallback={<PageSkeleton title="Verify email" variant="form" />}><VerifyEmailPageContent {...props} /></Suspense>;
 }

@@ -13,15 +13,21 @@ test("seeded admin can navigate dashboard shell and admin overview", async ({ pa
   await page.goto(ROUTES.login);
   await page.getByRole("textbox", { name: "Email" }).fill("admin@dhstarter.test");
   await page.getByLabel("Password").fill("DhStarter@Admin2026");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  const loginError = page.getByRole("alert");
-  await expect.poll(async () => {
-    if (await loginError.isVisible()) return "error";
-    return page.url().endsWith(ROUTES.dashboard) ? "dashboard" : "pending";
-  }, { timeout: 10000 }).not.toBe("pending");
-  if (await loginError.isVisible()) {
-    test.skip(true, "Requires a migrated and seeded local database with the demo admin login");
+  async function signIn() {
+    const response = page.waitForResponse((result) =>
+      new URL(result.url()).pathname.startsWith(ROUTES.authApi) && result.request().method() === "POST",
+    );
+    await page.getByRole("button", { name: "Sign in" }).click();
+    return response;
   }
+  let signInResponse = await signIn();
+  if (signInResponse.status() === 429) {
+    // Better Auth allows three sign-ins per IP in ten seconds. Other E2E tests share localhost.
+    const retryAfter = Number(signInResponse.headers()["x-retry-after"] ?? 10);
+    await page.waitForTimeout((Math.max(1, retryAfter) + 1) * 1000);
+    signInResponse = await signIn();
+  }
+  expect(signInResponse.status()).toBe(200);
   await expect(page).toHaveURL(new RegExp(`${ROUTES.dashboard}$`));
   await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
   await page.keyboard.press("Control+k");

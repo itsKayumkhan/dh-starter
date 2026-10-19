@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
 import Link from "next/link";
 import { requirePermission } from "@/lib/auth/session";
 import { buildMetadata } from "@/lib/seo";
@@ -9,7 +11,7 @@ import { getAdminSubscriptions } from "@/modules/billing/server/queries";
 
 export const metadata = buildMetadata({ title: "Subscriptions", path: BILLING_ROUTES.adminSubscriptions, noIndex: true });
 
-export default async function AdminSubscriptionsPage({ searchParams }: {
+async function AdminSubscriptionsPageContent({ searchParams }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   await requirePermission("billing:manage");
@@ -18,4 +20,8 @@ export default async function AdminSubscriptionsPage({ searchParams }: {
     <PageHeader title="Subscriptions" description="Review subscription status and renewal dates." actions={<Button asChild variant="outline"><Link href={BILLING_ROUTES.admin}>Payments</Link></Button>} />
     <AdminSubscriptionTable data={list.data} pageCount={list.pageCount} />
   </main>;
+}
+
+export default function AdminSubscriptionsPage(props: Parameters<typeof AdminSubscriptionsPageContent>[0]) {
+  return <Suspense fallback={<PageSkeleton title="Subscriptions" />}><AdminSubscriptionsPageContent {...props} /></Suspense>;
 }

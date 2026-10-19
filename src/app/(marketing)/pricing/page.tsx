@@ -1,3 +1,5 @@
+import { Suspense, cache } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
@@ -12,9 +14,7 @@ import { hasManagedSubscription } from "@/modules/billing/server/queries";
 
 export const metadata = buildMetadata({ title: "Pricing", description: "Choose a plan that fits your project.", path: BILLING_ROUTES.pricing });
 
-export default async function PricingPage() {
-  const signedIn = Boolean(await getSession());
-  const hasSubscription = signedIn ? await hasManagedSubscription() : false;
+export default function PricingPage() {
   return <main className="mx-auto max-w-6xl space-y-10 px-4 py-12 sm:px-6 sm:py-16">
     <header className="max-w-2xl space-y-3">
       <p className="text-primary text-sm font-semibold">Simple pricing</p>
@@ -33,11 +33,9 @@ export default async function PricingPage() {
             {plan.features.map((feature) => <li key={feature} className="flex items-start gap-2 text-sm"><Check aria-hidden="true" className="text-primary mt-0.5 size-4 shrink-0" />{feature}</li>)}
           </ul>
         </CardContent>
-        <CardFooter>{signedIn
-          ? hasSubscription
-            ? <BillingActionButton action={{ kind: "portal" }}>Manage plan</BillingActionButton>
-            : <BillingActionButton action={{ kind: "plan", id: plan.id }}>Choose {plan.name}</BillingActionButton>
-          : <Button asChild><Link href={ROUTES.signup}>Choose {plan.name}</Link></Button>}
+        <CardFooter><Suspense fallback={<Skeleton className="h-9 w-32" />}>
+          <PlanAction id={plan.id} name={plan.name} />
+        </Suspense>
         </CardFooter>
       </Card>)}
     </div>
@@ -46,11 +44,30 @@ export default async function PricingPage() {
       {oneTimeProducts.map((product) => <Card key={product.id} className="max-w-xl">
         <CardHeader><CardTitle>{product.name}</CardTitle><CardDescription>{product.description}</CardDescription></CardHeader>
         <CardContent><p className="font-semibold">{product.displayAmount}</p></CardContent>
-        <CardFooter>{signedIn
-          ? <BillingActionButton action={{ kind: "product", id: product.id }}>Buy once</BillingActionButton>
-          : <Button asChild><Link href={ROUTES.signup}>Buy once</Link></Button>}
+        <CardFooter><Suspense fallback={<Skeleton className="h-9 w-24" />}>
+          <ProductAction id={product.id} />
+        </Suspense>
         </CardFooter>
       </Card>)}
     </section>
   </main>;
+}
+
+
+const cachedHasManagedSubscription = cache(hasManagedSubscription);
+
+async function PlanAction({ id, name }: { id: string; name: string }) {
+  const signedIn = Boolean(await getSession());
+  if (!signedIn) return <Button asChild><Link href={ROUTES.signup}>Choose {name}</Link></Button>;
+  if (await cachedHasManagedSubscription()) {
+    return <BillingActionButton action={{ kind: "portal" }}>Manage plan</BillingActionButton>;
+  }
+  return <BillingActionButton action={{ kind: "plan", id }}>Choose {name}</BillingActionButton>;
+}
+
+async function ProductAction({ id }: { id: string }) {
+  const signedIn = Boolean(await getSession());
+  return signedIn
+    ? <BillingActionButton action={{ kind: "product", id }}>Buy once</BillingActionButton>
+    : <Button asChild><Link href={ROUTES.signup}>Buy once</Link></Button>;
 }

@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
 import { requirePermission } from "@/lib/auth/session";
 import { buildMetadata } from "@/lib/seo";
 import { SendNotificationForm } from "@/modules/notifications/components/send-notification-form";
@@ -10,7 +12,7 @@ export const metadata = buildMetadata({
   noIndex: true,
 });
 
-export default async function AdminNotificationsPage() {
+async function AdminNotificationsPageContent() {
   await requirePermission("notifications:send");
   return (
     <main className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6">
@@ -25,4 +27,8 @@ export default async function AdminNotificationsPage() {
       <SendNotificationForm />
     </main>
   );
+}
+
+export default function AdminNotificationsPage() {
+  return <Suspense fallback={<PageSkeleton title="Send notification" variant="form" />}><AdminNotificationsPageContent /></Suspense>;
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDateTime } from "@/lib/format";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -359,7 +361,7 @@ function SessionsList({
                   </p>
                   <p className="text-muted-foreground text-xs">
                     IP: {session.ip} | Last active:{" "}
-                    {new Date(session.lastActive).toUTCString()}
+                    {formatDateTime(session.lastActive)}
                   </p>
                 </div>
                 {!session.current ? (

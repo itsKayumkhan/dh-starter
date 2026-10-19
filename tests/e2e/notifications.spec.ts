@@ -57,9 +57,15 @@ test("staff sends an in-app notification to users", async ({ page }) => {
   await page.getByRole("link", { name: "Read", exact: true }).click();
   await expect(page.getByRole("heading", { name: title })).toBeVisible();
   await notification.getByRole("button", { name: "Delete" }).click();
+  const deletion = page.waitForResponse((response) =>
+    new URL(response.url()).pathname === NOTIFICATION_ROUTES.list && response.request().method() === "POST",
+  );
   await page
     .getByRole("alertdialog")
     .getByRole("button", { name: "Delete" })
     .click();
+  await deletion;
   await expect(page.getByRole("heading", { name: title })).toHaveCount(0);
+  // Let the post-delete refresh settle before Playwright closes this browser context.
+  await page.waitForLoadState("networkidle");
 });

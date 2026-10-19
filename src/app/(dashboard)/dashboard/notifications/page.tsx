@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
 import Link from "next/link";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/session";
@@ -35,7 +37,7 @@ function listHref(
     : NOTIFICATION_ROUTES.list;
 }
 
-export default async function NotificationsPage({
+async function NotificationsPageContent({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
@@ -116,4 +118,8 @@ export default async function NotificationsPage({
       ) : null}
     </main>
   );
+}
+
+export default function NotificationsPage(props: Parameters<typeof NotificationsPageContent>[0]) {
+  return <Suspense fallback={<PageSkeleton title="Notifications" />}><NotificationsPageContent {...props} /></Suspense>;
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/format";
+
 import Link from "next/link";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
@@ -16,8 +18,8 @@ function makeColumns(canManage: boolean): DataTableColumn<UserRow>[] { return [
   { accessorKey: "name", header: "User", cell: ({ row }) => <Link href={ADMIN_ROUTES.user(row.original.id)} className="flex min-w-44 items-center gap-3 rounded-sm focus-visible:outline-2 focus-visible:outline-ring"><Avatar className="size-9"><AvatarImage src={row.original.image ?? undefined} alt="" /><AvatarFallback>{row.original.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar><span className="min-w-0"><span className="block truncate font-medium">{row.original.name}</span><span className="text-muted-foreground block truncate text-xs">{row.original.email}</span></span></Link> },
   { accessorKey: "role", header: "Role", cell: ({ row }) => <Badge variant="secondary" className="capitalize">{row.original.role}</Badge> },
   { accessorKey: "status", header: "Status", enableSorting: false, cell: ({ row }) => <Badge variant={row.original.status === "banned" ? "destructive" : "outline"} className="capitalize">{row.original.status}</Badge> },
-  { accessorKey: "createdAt", header: "Created", cell: ({ row }) => <time dateTime={row.original.createdAt}>{new Date(row.original.createdAt).toLocaleDateString()}</time> },
-  { accessorKey: "lastActive", header: "Last active", enableSorting: false, cell: ({ row }) => row.original.lastActive ? <time dateTime={row.original.lastActive}>{new Date(row.original.lastActive).toLocaleDateString()}</time> : "Never" },
+  { accessorKey: "createdAt", header: "Created", cell: ({ row }) => <time dateTime={row.original.createdAt}>{formatDate(row.original.createdAt)}</time> },
+  { accessorKey: "lastActive", header: "Last active", enableSorting: false, cell: ({ row }) => row.original.lastActive ? <time dateTime={row.original.lastActive}>{formatDate(row.original.lastActive)}</time> : "Never" },
   { id: "actions", header: "Actions", enableSorting: false, cell: ({ row }) => <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={`Actions for ${row.original.name}`}><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem asChild><Link href={ADMIN_ROUTES.user(row.original.id)}>View details</Link></DropdownMenuItem>{canManage && <DropdownMenuItem onSelect={() => void revokeUserSessions({ id: row.original.id }).then((result) => result.ok ? toast.success("Sessions revoked") : toast.error(result.error))}>Revoke sessions</DropdownMenuItem>}</DropdownMenuContent></DropdownMenu> },
 ]; }
 
