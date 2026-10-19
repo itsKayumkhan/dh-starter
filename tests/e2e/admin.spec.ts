@@ -9,6 +9,7 @@ test("admin can review users and audit history", async ({ page }) => {
   await page.getByLabel("Email").fill("admin@dhstarter.test");
   await page.getByLabel("Password").fill("DhStarter@Admin2026");
   await page.getByRole("button", { name: /sign in/i }).click();
+  await page.waitForURL((url) => url.pathname.startsWith(ROUTES.dashboard));
   await page.goto(ADMIN_ROUTES.users);
   await expect(page.getByRole("heading", { name: "Users" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Invite user" })).toBeVisible();
