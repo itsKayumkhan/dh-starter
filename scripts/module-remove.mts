@@ -71,10 +71,20 @@ const nextRegistry = registry
   .join("\n");
 const envPath = resolve(root, ".env.example");
 const env = await readFile(envPath, "utf8");
-const nextEnv = env
-  .split(/\r?\n/)
-  .filter((line) => !manifest.envKeys.some((key) => line.startsWith(`${key}=`)))
-  .join("\n");
+const envLines = env.split(/\r?\n/);
+const isRemovedKey = (line: string) =>
+  manifest.envKeys.some((key) => line.startsWith(`${key}=`));
+const nextEnv = envLines
+  .filter((line, index) => {
+    if (isRemovedKey(line)) return false;
+    // section header written for this module, e.g. "# --- billing module (Stripe) ---"
+    if (line.startsWith(`# --- ${id} module`)) return false;
+    // the comment line directly above a removed key
+    const nextLine = envLines[index + 1];
+    return !(line.startsWith("#") && nextLine !== undefined && isRemovedKey(nextLine));
+  })
+  .join("\n")
+  .replace(/\n{3,}/g, "\n\n");
 for (const { path, full } of targets) {
   process.stdout.write(`${dryRun ? "Would delete" : "Deleting"} ${path}\n`);
   if (!dryRun) await rm(full, { recursive: true, force: true });
@@ -129,7 +139,7 @@ for (const pkg of manifest.packages) {
       `${dryRun ? "Would uninstall" : "Uninstalling"} ${pkg}\n`,
     );
     if (!dryRun) {
-      const result = spawnSync("npm.cmd", ["uninstall", pkg], {
+      const result = spawnSync("npm", ["uninstall", pkg], {
         cwd: root,
         stdio: "inherit",
         shell: true,
@@ -139,4 +149,13 @@ for (const pkg of manifest.packages) {
     }
   }
 }
-process.stdout.write("Next step: npx prisma migrate dev\n");
+if (!dryRun) {
+  // Generated route types still point at deleted pages until the next build.
+  await rm(resolve(root, ".next"), { recursive: true, force: true });
+}
+process.stdout.write(
+  `Next steps:
+  1. npx prisma migrate dev --name remove_${id}   (drops this module tables)
+  2. npm run typecheck && npm run build
+`,
+);
