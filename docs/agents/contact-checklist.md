@@ -1,0 +1,3 @@
+- [ ] **src/modules/contact/env.ts:13** - Set CONTACT_NOTIFY_EMAIL to a real monitored inbox + the fallback site support address is a starter placeholder.
+- [ ] **src/config/site.ts:14** - Replace the starter support email address + contact details and fallback notification delivery need a real address.
+- [ ] **src/config/site.ts:15** - Replace the starter business address + it is displayed on the contact page and email footer.

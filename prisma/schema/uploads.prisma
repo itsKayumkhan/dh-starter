@@ -1,0 +1,19 @@
+model Media {
+  id           String   @id @default(cuid())
+  ownerId      String?
+  provider     String   @default("cloudinary")
+  publicId     String   @unique
+  url          String
+  resourceType String
+  format       String
+  bytes        Int
+  width        Int?
+  height       Int?
+  folder       String
+  alt          String?
+  createdAt    DateTime @default(now())
+
+  @@index([ownerId])
+  @@index([folder])
+  @@index([createdAt])
+}

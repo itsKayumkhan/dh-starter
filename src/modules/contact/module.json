@@ -1,0 +1,19 @@
+{
+  "id": "contact",
+  "name": "Contact form and inquiries",
+  "description": "Public contact form, email notices and inquiry management",
+  "paths": [
+    "src/modules/contact",
+    "src/app/(marketing)/contact",
+    "src/app/(dashboard)/admin/inquiries",
+    "tests/e2e/contact.spec.ts"
+  ],
+  "prismaFiles": [
+    "prisma/schema/contact.prisma"
+  ],
+  "packages": [],
+  "envKeys": [
+    "CONTACT_NOTIFY_EMAIL"
+  ],
+  "dependsOn": []
+}

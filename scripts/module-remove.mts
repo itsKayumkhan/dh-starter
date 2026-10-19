@@ -21,9 +21,15 @@ const id = z
   .regex(/^[a-z][a-z0-9-]*$/)
   .parse(args.find((arg) => !arg.startsWith("--")));
 const moduleDir = resolve(root, "src/modules", id);
-const manifest = manifestSchema.parse(
-  JSON.parse(await readFile(join(moduleDir, "module.json"), "utf8")),
-);
+let manifestRaw: string;
+try {
+  manifestRaw = await readFile(join(moduleDir, "module.json"), "utf8");
+} catch {
+  process.stderr.write(`Module "${id}" is not installed. Run npm run module:list to see installed modules.
+`);
+  process.exit(1);
+}
+const manifest = manifestSchema.parse(JSON.parse(manifestRaw));
 if (manifest.id !== id) throw new Error("Manifest ID does not match directory");
 if (!manifest.paths.includes(`src/modules/${id}`))
   throw new Error("Manifest must own its module directory");
@@ -46,8 +52,9 @@ function checkedPath(path: string) {
   const rel = relative(root, full).replaceAll("\\", "/");
   const allowed =
     rel === `src/modules/${id}` ||
-    (rel.startsWith("src/app/") && rel.split("/").includes(id)) ||
-    rel === `prisma/schema/${id}.prisma`;
+    (rel.startsWith("src/app/") && rel.split("/").length >= 4) ||
+    rel === `prisma/schema/${id}.prisma` ||
+    /^tests\/e2e\/[a-z0-9-]+\.spec\.ts$/.test(rel);
   if (!allowed || rel.startsWith("../") || resolve(root, rel) !== full)
     throw new Error(`Unsafe path: ${path}`);
   return full;

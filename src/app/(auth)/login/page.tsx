@@ -1,20 +1,27 @@
-import { LoginForm } from "@/components/shared/login-form";
 import { z } from "zod";
-import { MESSAGES } from "@/lib/constants/messages";
-import { safeReturnPath } from "@/lib/return-path";
+import { LoginForm } from "@/components/auth/login-form";
+import { sanitizeNext } from "@/components/auth/safe-redirect";
+import { isGoogleAuthEnabled } from "@/lib/env/server";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({ title: "Sign in", noIndex: true });
+
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const candidate = z
-    .object({ next: z.string().optional() })
-    .safeParse(await searchParams).data?.next;
-  const next = safeReturnPath(candidate);
+  const parsed = z
+    .object({
+      next: z.string().optional(),
+      error: z.string().max(128).optional(),
+    })
+    .safeParse(await searchParams);
   return (
-    <main className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6">
-      <h1 className="mb-6 text-3xl font-semibold">{MESSAGES.signIn}</h1>
-      <LoginForm next={next} />
-    </main>
+    <LoginForm
+      next={sanitizeNext(parsed.success ? parsed.data.next : undefined)}
+      googleEnabled={isGoogleAuthEnabled()}
+      oauthError={Boolean(parsed.success && parsed.data.error)}
+    />
   );
 }

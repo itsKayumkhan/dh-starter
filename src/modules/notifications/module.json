@@ -1,0 +1,18 @@
+{
+  "id": "notifications",
+  "name": "In-app notifications",
+  "description": "User notifications, header bell, and staff delivery",
+  "paths": [
+    "src/modules/notifications",
+    "src/app/api/notifications",
+    "src/app/(dashboard)/dashboard/notifications",
+    "src/app/(dashboard)/admin/notifications",
+    "tests/e2e/notifications.spec.ts"
+  ],
+  "prismaFiles": [
+    "prisma/schema/notifications.prisma"
+  ],
+  "packages": [],
+  "envKeys": [],
+  "dependsOn": []
+}

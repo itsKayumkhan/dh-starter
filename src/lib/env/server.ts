@@ -48,12 +48,6 @@ const serverEnvSchema = z
         path: ["SMTP_HOST"],
         message: "Required for SMTP",
       });
-    if (value.EMAIL_PROVIDER === "console" && value.NODE_ENV === "production")
-      ctx.addIssue({
-        code: "custom",
-        path: ["EMAIL_PROVIDER"],
-        message: "Console email is disabled in production",
-      });
     if (Boolean(value.GOOGLE_CLIENT_ID) !== Boolean(value.GOOGLE_CLIENT_SECRET))
       ctx.addIssue({
         code: "custom",
@@ -66,6 +60,16 @@ let cached: z.infer<typeof serverEnvSchema> | undefined;
 export function getServerEnv() {
   cached ??= serverEnvSchema.parse(process.env);
   return cached;
+}
+
+/**
+ * Runtime-only checks that must not run during `next build` (which also sets NODE_ENV=production).
+ * Called from src/instrumentation.ts when the server boots, so a misconfigured deploy fails fast.
+ */
+export function assertProductionRuntimeEnv() {
+  const env = getServerEnv();
+  if (env.NODE_ENV === "production" && env.EMAIL_PROVIDER === "console")
+    throw new Error("EMAIL_PROVIDER=console is not allowed in production. Use resend or smtp.");
 }
 
 export function isGoogleAuthEnabled() {

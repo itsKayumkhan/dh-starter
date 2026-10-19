@@ -13,5 +13,8 @@ export default defineConfig({
         return "postgresql://invalid:invalid@localhost:1/invalid";
       }
     })(),
+    // prisma dev (PGlite) has a single database, so migrate needs its separate shadow server.
+    // Not needed for Docker, Supabase or Neon.
+    shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL || undefined,
   },
 });

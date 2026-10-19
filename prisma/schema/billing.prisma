@@ -1,0 +1,55 @@
+model BillingCustomer {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  stripeCustomerId String   @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  stripeSubscriptionId String   @unique
+  userId               String
+  status               String
+  priceId              String
+  planId               String
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status, createdAt])
+}
+
+model Payment {
+  id                      String   @id @default(cuid())
+  stripeCheckoutSessionId String?  @unique
+  stripePaymentIntentId   String?  @unique
+  userId                  String
+  amount                  Int
+  currency                String
+  status                  String
+  description             String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+enum BillingWebhookStatus {
+  processing
+  processed
+  failed
+}
+
+model WebhookEvent {
+  id          String    @id
+  type        String
+  status      BillingWebhookStatus @default(processing)
+  attempts    Int       @default(1)
+  lastError   String?
+  receivedAt  DateTime  @default(now())
+  processedAt DateTime?
+}

@@ -1,0 +1,1 @@
+- [ ] **tests/e2e/admin.spec.ts:9** - Replace or remove the documented development seed login before production test runs + the seeded credentials are only for local browser testing.

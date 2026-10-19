@@ -19,7 +19,7 @@ export const getSession = cache(async () => {
 function loginUrl(next: string) {
   return `${ROUTES.login}?next=${encodeURIComponent(next)}`;
 }
-export async function requireUser(next = ROUTES.dashboard) {
+export async function requireUser(next: string = ROUTES.dashboard) {
   const session = await getSession();
   if (!session) redirect(loginUrl(next));
   return session.user;

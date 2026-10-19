@@ -1,0 +1,1 @@
+- [ ] **tests/e2e/notifications.spec.ts:15** - Remove or rotate seeded test account credentials before any production test run + the starter credentials are public development fixtures.

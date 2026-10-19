@@ -1,0 +1,15 @@
+{
+  "id": "admin",
+  "name": "Admin users and audit",
+  "description": "User management and audit log review",
+  "paths": [
+    "src/modules/admin",
+    "src/app/(dashboard)/admin/users",
+    "src/app/(dashboard)/admin/audit",
+    "tests/e2e/admin.spec.ts"
+  ],
+  "prismaFiles": [],
+  "packages": [],
+  "envKeys": [],
+  "dependsOn": []
+}
