@@ -1,0 +1,38 @@
+## Project
+
+**StoryHorde** is a reading and AI assisted social post creation app. It is a single Next.js **16.3.8** App Router project with React 19, Supabase Postgres and Auth (`@supabase/ssr`), no ORM, Tailwind CSS 4/shadcn, TanStack Query and nuqs for client and URL state, and Zustand for the editor. There is an auxiliary `site/tools/posts` package, but no workspace configuration. ([package.json](<D:/coding/1_Adigital heroes/custom/StoryHorde/package.json>), [providers.tsx](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/components/shared/providers.tsx>))
+
+## Reusable modules found
+
+- **Auth — yes:** Supabase password signup/login, email confirmation, recovery, Google OAuth, signout and cookie sessions. ([actions.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/auth/actions.ts>), [callback route](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/app/auth/callback/route.ts>), [session.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/auth/session.ts>))
+- **Roles/RBAC and route protection — yes:** `user`/`admin` roles, server guards and Postgres RLS; `proxy.ts` refreshes sessions and redirects, while layouts and actions recheck authorization. ([initial migration](<D:/coding/1_Adigital heroes/custom/StoryHorde/supabase/migrations/20260928000000_init.sql>), [proxy.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/proxy.ts>), [admin layout](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/app/(admin)/admin/layout.tsx>))
+- **Admin panel/user management — yes:** user search, roles, deletion, complimentary access, subscriptions and system views. ([users.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/admin/actions/users.ts>), [queries.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/admin/server/queries.ts>))
+- **API and validation — yes:** mostly server actions, with route handlers for webhooks, uploads, search and cron; feature-local Zod schemas validate inputs. ([auth actions](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/auth/actions.ts>), [upload route](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/app/api/uploads/presign/route.ts>), [admin schemas](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/admin/schemas/index.ts>))
+- **Errors, env, constants — yes:** typed `AppError`, `ActionResult`, route-group `error.tsx`; Zod validates public/server env separately; centralized routes and enums. ([errors.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/errors.ts>), [action-result.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/action-result.ts>), [env.server.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/env.server.ts>), [routes.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/constants/routes.ts>))
+- **Email and notifications — yes:** Resend and React Email templates, a typed dispatch registry, delivery logs and retry job; Sonner provides client toasts. ([registry.tsx](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/emails/server/registry.tsx>), [send.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/email/send.ts>), [email-retry.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/cron/jobs/email-retry.ts>))
+- **Uploads/storage — yes:** presigned direct uploads, reservation/completion checks, image-header validation, Supabase Storage or Cloudflare R2. ([mutations.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/uploads/server/mutations.ts>), [r2.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/storage/r2.ts>))
+- **Payments — yes:** Stripe Checkout, subscriptions, top-ups, signed webhooks, event deduplication and reconciliation. ([checkout.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/billing/server/checkout.ts>), [webhook route](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/app/api/stripe/webhook/route.ts>))
+- **Rate limiting and logging — yes:** Cloudflare bindings with memory fallback; allowlisted error metadata sent to console. ([rate-limit.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/rate-limit.ts>), [logging.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/logging.ts>))
+- **Search/pagination/tables and analytics — yes:** URL filters, paged Supabase queries, responsive admin tables and SQL-backed KPI charts. ([admin queries](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/admin/server/queries.ts>), [users-table.tsx](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/admin/components/users-table.tsx>))
+- **SEO — yes:** metadata helpers, JSON-LD, dynamic sitemap and robots rules. ([metadata.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/seo/metadata.ts>), [sitemap.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/app/sitemap.ts>), [robots.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/app/robots.ts>))
+- **Testing, migrations/seeds, jobs, deployment — yes:** Node unit and Playwright E2E tests; Supabase SQL migrations and dev seeds; locked cron jobs through a Cloudflare Worker. Deploy scripts/config exist, but no CI workflow was found. ([tests](<D:/coding/1_Adigital heroes/custom/StoryHorde/tests>), [migrations](<D:/coding/1_Adigital heroes/custom/StoryHorde/supabase/migrations>), [run-job.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/cron/server/run-job.ts>), [worker/index.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/worker/index.ts>))
+- **PDF/certificate generation, i18n and realtime — absent:** no implementation found; the app sets English as its document language. ([layout.tsx](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/app/layout.tsx>))
+
+## Best pieces to extract
+
+1. [Session guards and proxy](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/auth/session.ts>): clear server authority after an optimistic redirect gate.
+2. [ActionResult wrapper](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/action-result.ts>): consistent, safe form errors with nested Zod field paths.
+3. [Stripe billing module](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/billing/server/webhook.ts>): retryable event claims and idempotent subscription synchronization.
+4. [Upload pipeline](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/uploads/server/mutations.ts>): direct transfer with quota reservation and server verification.
+5. [Email registry](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/emails/server/registry.tsx>): typed templates, payload validation and delivery rules in one place.
+
+## Anti-patterns to avoid
+
+- Four rate-limit bindings used by code are missing from [wrangler.jsonc](<D:/coding/1_Adigital heroes/custom/StoryHorde/wrangler.jsonc>); [rate-limit.ts](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/lib/rate-limit.ts>) then uses per-isolate memory and allows requests through when a binding errors.
+- Brand tokens are duplicated between [globals.css](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/app/globals.css>) and [site/css/tokens.css](<D:/coding/1_Adigital heroes/custom/StoryHorde/site/css/tokens.css>).
+- [Admin queries](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/admin/server/queries.ts>) combine users, billing, CMS, feedback and system reporting in one large file.
+
+## Project-specific (not reusable)
+
+Reading logs and book search, AI post generation, Fabric design editor, brand kits, template catalogue, StoryHorde copy and visual assets. ([reading](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/reading>), [generator](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/generator>), [editor](<D:/coding/1_Adigital heroes/custom/StoryHorde/src/features/editor>))
+
