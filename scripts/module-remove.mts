@@ -152,6 +152,8 @@ for (const pkg of manifest.packages) {
 if (!dryRun) {
   // Generated route types still point at deleted pages until the next build.
   await rm(resolve(root, ".next"), { recursive: true, force: true });
+  // Regenerate route types (LayoutProps, PageProps) for the remaining routes.
+  spawnSync("npx", ["next", "typegen"], { cwd: root, stdio: "inherit", shell: true });
 }
 process.stdout.write(
   `Next steps:
