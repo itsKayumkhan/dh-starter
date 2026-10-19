@@ -1,6 +1,6 @@
 ## Project
 
-**STM Events** — an events, DJs, equipment rental, and gallery site with customer accounts and an admin CMS. Single Next.js 16.2 App Router project with React 19, Supabase/Postgres (no ORM), Supabase Auth, Tailwind CSS 4, and React context/local state. No monorepo structure. ([package.json](<D:/coding/1_Adigital heroes/custom/stmevents/package.json>))
+**STM Events**, an events, DJs, equipment rental, and gallery site with customer accounts and an admin CMS. Single Next.js 16.2 App Router project with React 19, Supabase/Postgres (no ORM), Supabase Auth, Tailwind CSS 4, and React context/local state. No monorepo structure. ([package.json](<D:/coding/1_Adigital heroes/custom/stmevents/package.json>))
 
 ## Reusable modules found
 
@@ -27,11 +27,11 @@
 
 ## Best pieces to extract
 
-1. **Supabase SSR client setup** — clean server/browser split and cookie refresh pattern: `lib/supabase/server.ts`, `lib/supabase/client.ts`, `proxy.ts`.
-2. **Direct Cloudinary uploader** — drag/drop, preview, and signed browser upload: `app/admin/_components/ImageUpload.tsx`, `app/api/upload/sign/route.ts`.
-3. **Editable bilingual content pattern** — configured fields, fallbacks, and preview: `app/admin/visual-editor/sections/index.ts`, `lib/hooks/useSiteContent.tsx`.
-4. **Admin form controls** — reusable date, select, field, and rich-text components: `app/admin/_components/`.
-5. **Typed locale context** — compact dictionary lookup and locale switching: `lib/i18n/LanguageContext.tsx`, `lib/i18n/translations.ts`.
+1. **Supabase SSR client setup**, clean server/browser split and cookie refresh pattern: `lib/supabase/server.ts`, `lib/supabase/client.ts`, `proxy.ts`.
+2. **Direct Cloudinary uploader**, drag/drop, preview, and signed browser upload: `app/admin/_components/ImageUpload.tsx`, `app/api/upload/sign/route.ts`.
+3. **Editable bilingual content pattern**, configured fields, fallbacks, and preview: `app/admin/visual-editor/sections/index.ts`, `lib/hooks/useSiteContent.tsx`.
+4. **Admin form controls**, reusable date, select, field, and rich-text components: `app/admin/_components/`.
+5. **Typed locale context**, compact dictionary lookup and locale switching: `lib/i18n/LanguageContext.tsx`, `lib/i18n/translations.ts`.
 
 ## Anti-patterns to avoid
 

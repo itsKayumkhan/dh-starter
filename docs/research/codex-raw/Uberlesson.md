@@ -1,6 +1,6 @@
 ## Project
 
-**UberLesson (ACOFE L)** — driving lesson marketplace. npm workspaces monorepo: Next.js 14.2.35 App Router, React 18, Express 4 API, Supabase Postgres with Prisma 5, Supabase Auth, Tailwind CSS 3, and Zustand. See [root package.json](<D:/coding/1_Adigital heroes/custom/Uberlesson/package.json>), [frontend package.json](<D:/coding/1_Adigital heroes/custom/Uberlesson/frontend/package.json>), and [backend package.json](<D:/coding/1_Adigital heroes/custom/Uberlesson/backend/package.json>).
+**UberLesson (ACOFE L)**, driving lesson marketplace. npm workspaces monorepo: Next.js 14.2.35 App Router, React 18, Express 4 API, Supabase Postgres with Prisma 5, Supabase Auth, Tailwind CSS 3, and Zustand. See [root package.json](<D:/coding/1_Adigital heroes/custom/Uberlesson/package.json>), [frontend package.json](<D:/coding/1_Adigital heroes/custom/Uberlesson/frontend/package.json>), and [backend package.json](<D:/coding/1_Adigital heroes/custom/Uberlesson/backend/package.json>).
 
 ## Reusable modules found
 

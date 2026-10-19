@@ -1,6 +1,6 @@
 ## Project
 
-**Paradise Appliances** — appliance storefront with inventory, checkout, POS, and staff operations. Single Next.js **16.3.8** App Router project; Supabase Postgres with SQL migrations (no ORM), Supabase Auth and `@supabase/ssr`, Tailwind CSS 4 with shadcn/Base UI, and Zustand for cart and wishlist state. See `package.json`, `src/features/cart/store.ts`.
+**Paradise Appliances**, appliance storefront with inventory, checkout, POS, and staff operations. Single Next.js **16.3.8** App Router project; Supabase Postgres with SQL migrations (no ORM), Supabase Auth and `@supabase/ssr`, Tailwind CSS 4 with shadcn/Base UI, and Zustand for cart and wishlist state. See `package.json`, `src/features/cart/store.ts`.
 
 ## Reusable modules found
 

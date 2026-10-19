@@ -1,6 +1,6 @@
 ## Project
 
-**Nimbly** — maintenance management for interventions, preventive tasks, machine documents, and AI assistance. Stack: Next.js 14.2.35 (App Router), React 18, Firebase Firestore and Storage (no ORM), Firebase Auth, Tailwind CSS/Radix UI, React Context for shared state; single repo. [package.json](<D:/coding/1_Adigital heroes/custom/nimbly/package.json>), [README.md](<D:/coding/1_Adigital heroes/custom/nimbly/README.md>)
+**Nimbly**, maintenance management for interventions, preventive tasks, machine documents, and AI assistance. Stack: Next.js 14.2.35 (App Router), React 18, Firebase Firestore and Storage (no ORM), Firebase Auth, Tailwind CSS/Radix UI, React Context for shared state; single repo. [package.json](<D:/coding/1_Adigital heroes/custom/nimbly/package.json>), [README.md](<D:/coding/1_Adigital heroes/custom/nimbly/README.md>)
 
 ## Reusable modules found
 
@@ -17,11 +17,11 @@
 
 ## Best pieces to extract
 
-1. [logger.ts](<D:/coding/1_Adigital heroes/custom/nimbly/src/lib/logger.ts>) — scoped, structured Cloud Logging output.
-2. [firebase-admin.ts](<D:/coding/1_Adigital heroes/custom/nimbly/src/lib/firebase-admin.ts>) — reusable Admin SDK initialization and token verifier; separate and redesign its role checks.
-3. [use-collection.tsx](<D:/coding/1_Adigital heroes/custom/nimbly/src/firebase/firestore/use-collection.tsx>) and [use-doc.tsx](<D:/coding/1_Adigital heroes/custom/nimbly/src/firebase/firestore/use-doc.tsx>) — typed realtime subscription hooks.
-4. [firestore-utils.ts](<D:/coding/1_Adigital heroes/custom/nimbly/src/lib/firestore-utils.ts>) — query chunking and transient-error retry.
-5. [analytics.ts](<D:/coding/1_Adigital heroes/custom/nimbly/src/firebase/analytics.ts>) — reusable event/page-view wrapper; replace domain-specific events.
+1. [logger.ts](<D:/coding/1_Adigital heroes/custom/nimbly/src/lib/logger.ts>), scoped, structured Cloud Logging output.
+2. [firebase-admin.ts](<D:/coding/1_Adigital heroes/custom/nimbly/src/lib/firebase-admin.ts>), reusable Admin SDK initialization and token verifier; separate and redesign its role checks.
+3. [use-collection.tsx](<D:/coding/1_Adigital heroes/custom/nimbly/src/firebase/firestore/use-collection.tsx>) and [use-doc.tsx](<D:/coding/1_Adigital heroes/custom/nimbly/src/firebase/firestore/use-doc.tsx>), typed realtime subscription hooks.
+4. [firestore-utils.ts](<D:/coding/1_Adigital heroes/custom/nimbly/src/lib/firestore-utils.ts>), query chunking and transient-error retry.
+5. [analytics.ts](<D:/coding/1_Adigital heroes/custom/nimbly/src/firebase/analytics.ts>), reusable event/page-view wrapper; replace domain-specific events.
 
 ## Anti-patterns to avoid
 

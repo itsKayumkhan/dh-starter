@@ -1,6 +1,6 @@
 ## Project
 
-**PullNBangrz** — a live mystery bag catalogue with inventory, QR pulls, reviews, and an admin workspace. Single repo; Next.js 16.2.10 and React 19.2.4, Supabase Postgres without an ORM, Supabase Auth, Tailwind CSS 4, and React hooks/context for client state. [package.json](</D:/coding/1_Adigital heroes/custom/pullnbangrz/package.json>)
+**PullNBangrz**, a live mystery bag catalogue with inventory, QR pulls, reviews, and an admin workspace. Single repo; Next.js 16.2.10 and React 19.2.4, Supabase Postgres without an ORM, Supabase Auth, Tailwind CSS 4, and React hooks/context for client state. [package.json](</D:/coding/1_Adigital heroes/custom/pullnbangrz/package.json>)
 
 ## Reusable modules found
 

@@ -1,6 +1,6 @@
 ## Project
 
-**PeakPeps** (`Coremxtraining`) — research-chemical ecommerce storefront. Single-repo Next.js App Router **15.5.19** with PostgreSQL/Prisma **6**, NextAuth **4** credentials auth, Tailwind **3**, and Zustand **5**. React Query is installed but has no usage found. Sources: `package.json`, `prisma/schema.prisma`, `src/features/cart/store.ts`.
+**PeakPeps** (`Coremxtraining`), research-chemical ecommerce storefront. Single-repo Next.js App Router **15.5.19** with PostgreSQL/Prisma **6**, NextAuth **4** credentials auth, Tailwind **3**, and Zustand **5**. React Query is installed but has no usage found. Sources: `package.json`, `prisma/schema.prisma`, `src/features/cart/store.ts`.
 
 ## Reusable modules found
 
@@ -34,11 +34,11 @@
 
 ## Best pieces to extract
 
-1. [Auth session helpers](<D:/coding/1_Adigital heroes/custom/Coremxtraining/src/lib/auth/session.ts>) — recheck account status and password version against the database.
-2. [Webhook transaction](<D:/coding/1_Adigital heroes/custom/Coremxtraining/src/lib/db/queries/webhook-events.ts>) — records events and updates orders atomically.
-3. [Email provider interface](<D:/coding/1_Adigital heroes/custom/Coremxtraining/src/lib/email/index.ts>) — swaps transports behind one send function.
-4. [Signed upload action](<D:/coding/1_Adigital heroes/custom/Coremxtraining/src/features/admin/actions/upload-actions.ts>) — keeps upload credentials server-side.
-5. [Product query layer](<D:/coding/1_Adigital heroes/custom/Coremxtraining/src/lib/db/queries/products.ts>) — maps Prisma rows to client-safe DTOs.
+1. [Auth session helpers](<D:/coding/1_Adigital heroes/custom/Coremxtraining/src/lib/auth/session.ts>), recheck account status and password version against the database.
+2. [Webhook transaction](<D:/coding/1_Adigital heroes/custom/Coremxtraining/src/lib/db/queries/webhook-events.ts>), records events and updates orders atomically.
+3. [Email provider interface](<D:/coding/1_Adigital heroes/custom/Coremxtraining/src/lib/email/index.ts>), swaps transports behind one send function.
+4. [Signed upload action](<D:/coding/1_Adigital heroes/custom/Coremxtraining/src/features/admin/actions/upload-actions.ts>), keeps upload credentials server-side.
+5. [Product query layer](<D:/coding/1_Adigital heroes/custom/Coremxtraining/src/lib/db/queries/products.ts>), maps Prisma rows to client-safe DTOs.
 
 ## Anti-patterns to avoid
 

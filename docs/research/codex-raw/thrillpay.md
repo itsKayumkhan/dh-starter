@@ -1,6 +1,6 @@
 ## Project
 
-**ThrillPay** — a vendor and customer platform for payments, deals, loyalty, and messaging. Single Next.js App Router app (declares Next.js ^16.2.4, React 19.2.3); Supabase Postgres with SQL migrations and no ORM; Supabase Auth; Tailwind CSS 4; React Query plus React contexts. No monorepo. See `package.json`, `src/app/layout.tsx`, and `supabase/migrations/`.
+**ThrillPay**, a vendor and customer platform for payments, deals, loyalty, and messaging. Single Next.js App Router app (declares Next.js ^16.2.4, React 19.2.3); Supabase Postgres with SQL migrations and no ORM; Supabase Auth; Tailwind CSS 4; React Query plus React contexts. No monorepo. See `package.json`, `src/app/layout.tsx`, and `supabase/migrations/`.
 
 ## Reusable modules found
 
@@ -18,11 +18,11 @@
 
 ## Best pieces to extract
 
-1. **Supabase browser/server/admin client split** — clear session and privilege boundaries: `src/lib/supabase.ts`, `src/lib/supabase/{server,admin}.ts`.
-2. **Team authorization pattern** — typed permissions, server checks, and database policy examples: `src/lib/{roles,getVendorForUser}.ts`, `supabase/migrations/20260402_security_fixes.sql`.
-3. **Email delivery layer** — reusable rendering, provider wrapper, logs, and deduplication: `src/lib/email/{client,send}.ts`.
-4. **Subscription checkout flow** — customer reuse and in-place plan changes: `src/lib/stripe-actions.ts`.
-5. **Database-backed rate limiter** — shared counter across server instances: `src/lib/rate-limit.ts`, `supabase/migrations/20260416_rate_limit.sql`.
+1. **Supabase browser/server/admin client split**, clear session and privilege boundaries: `src/lib/supabase.ts`, `src/lib/supabase/{server,admin}.ts`.
+2. **Team authorization pattern**, typed permissions, server checks, and database policy examples: `src/lib/{roles,getVendorForUser}.ts`, `supabase/migrations/20260402_security_fixes.sql`.
+3. **Email delivery layer**, reusable rendering, provider wrapper, logs, and deduplication: `src/lib/email/{client,send}.ts`.
+4. **Subscription checkout flow**, customer reuse and in-place plan changes: `src/lib/stripe-actions.ts`.
+5. **Database-backed rate limiter**, shared counter across server instances: `src/lib/rate-limit.ts`, `supabase/migrations/20260416_rate_limit.sql`.
 
 ## Anti-patterns to avoid
 
