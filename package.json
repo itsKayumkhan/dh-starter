@@ -13,7 +13,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "db:dev": "prisma dev",
+    "db:dev": "prisma dev -n dh-starter --detach",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "prisma db seed",
@@ -23,7 +23,8 @@
     "module:remove": "tsx scripts/module-remove.mts",
     "email:dev": "email dev --dir src/lib/email/templates",
     "prepare": "husky",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:stop": "prisma dev stop dh-starter"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,cjs,json,md,css,yml,yaml}": "prettier --write",

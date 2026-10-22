@@ -4,7 +4,8 @@ import { Providers } from "@/components/shared/providers";
 import "./globals.css";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
+  // globals.css (shadcn) reads --font-sans; a different name falls back to the browser serif font.
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 

@@ -34,3 +34,27 @@ Removed admin, uploads, billing, notifications, contact in a fresh clone: regist
 4. Component tests: React Testing Library tests for shared components and their states.
 5. Email: migrate off deprecated `@react-email/components`.
 6. Re-run this checklist, including the all-modules-removed build.
+
+## Re-run after fixes (same day)
+
+Fixes by 5 parallel Codex agents (fix-boundaries, fix-auth-ux, fix-perf, fix-component-tests, fix-email) plus lead integration. Every result below was re-run.
+
+| #     | Test                    | Before                                | After    | Evidence                                                                                                                                                                                                                                                                                       |
+| ----- | ----------------------- | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2     | Circular dependencies   | 9 type-only cycles                    | PASS     | `npm run check:circular`: no cycles, type imports included. In CI.                                                                                                                                                                                                                             |
+| 4     | Component state tests   | 0 tests                               | PASS     | 26 test files, 85 tests (DataTable, EmptyState, PageHeader, StatCard, ConfirmDialog, UI primitives, auth forms, contact form, 7 email templates).                                                                                                                                              |
+| 6     | Clear missing-env error | Raw ZodError                          | PASS     | Fresh clone without .env: "Invalid environment variables: NEXT_PUBLIC_APP_URL is missing. Copy .env.example to .env and fill them in." Invalid production env: `next start` logs the reason and exits with code 1.                                                                             |
+| 8     | Forbidden UX            | "Something went wrong"                | PASS     | Browser as user role on /admin, /admin/users, /admin/audit: branded "Access denied" 403 page, no admin data. Sign-in rate limit also confirmed ("Too many requests" after repeated logins).                                                                                                    |
+| 10    | CI coverage             | No boundary/cycle checks              | PASS     | CI runs lint, typecheck, check:boundaries, check:circular, unit tests, build.                                                                                                                                                                                                                  |
+| 11    | Bundle size             | 238 KB home                           | IMPROVED | Home 190, pricing 204, contact 251, dashboard 333 KB gzip (see docs/PERFORMANCE.md). Next.js framework alone is about 145 KB, so a 150 KB page budget is not realistic; new budget: marketing under 200 KB, dashboard under 400 KB. Further splitting listed in docs/agents/fix-perf-needs.md. |
+| Extra | All 5 modules removed   | Build FAILED (core imported a module) | PASS     | Fresh clone, all modules removed: tsc, lint, check:boundaries (0 modules), check:circular, 61 unit tests and build all pass.                                                                                                                                                                   |
+
+Also fixed during the re-run:
+
+- Brand font was never applied (layout set `--font-geist-sans`, shadcn CSS reads `--font-sans`), pages rendered in a serif fallback. Fixed and guarded by a smoke e2e test.
+- Email: migrated to `react-email`, deprecated `@react-email/components` removed, `react-email` moved to dependencies.
+- `db:dev` now runs `prisma dev -n dh-starter --detach` (stays up from any shell); added `db:stop`.
+
+Final state: tsc, eslint, check:boundaries, check:circular, 85 unit tests, build with 0 warnings, e2e 10 passed / 3 skipped (Stripe and Cloudinary keys not set).
+
+Known local-only issue: the `prisma dev` (PGlite) server can drop connections under heavy parallel load; restart with `npm run db:stop` then `npm run db:dev`.
