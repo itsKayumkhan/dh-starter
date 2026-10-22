@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import { getServerEnv } from "@/lib/env/server";
-import type { ProviderInput } from "@/lib/email/providers";
+import type { ProviderInput } from "@/lib/email/providers/types";
 import { AppError } from "@/lib/errors";
 
 export async function send(input: ProviderInput): Promise<{ id?: string }> {

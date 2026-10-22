@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { forbidden, redirect, unstable_rethrow } from "next/navigation";
 import { auth } from "@/lib/auth/server";
 import { can, type Permission, type Role } from "@/lib/auth/permissions";
 import { ForbiddenError, UnauthorizedError } from "@/lib/errors";
@@ -11,7 +11,8 @@ export const getSession = cache(async () => {
   try {
     const session = await auth.api.getSession({ headers: await headers() });
     return session?.user && !session.user.banned ? session : null;
-  } catch {
+  } catch (error) {
+    unstable_rethrow(error);
     return null;
   }
 });
@@ -31,12 +32,12 @@ export async function assertUser() {
 }
 export async function requireRole(roles: readonly Role[]) {
   const user = await requireUser();
-  if (!roles.includes(user.role as Role)) throw new ForbiddenError();
+  if (!roles.includes(user.role as Role)) forbidden();
   return user;
 }
 export async function requirePermission(permission: Permission) {
   const user = await requireUser();
-  if (!can(user, permission)) throw new ForbiddenError();
+  if (!can(user, permission)) forbidden();
   return user;
 }
 export async function assertPermission(permission: Permission) {

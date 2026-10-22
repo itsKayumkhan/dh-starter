@@ -1,19 +1,5 @@
-import type { LucideIcon } from "lucide-react";
-import type { ComponentType } from "react";
-import type { Permission } from "@/lib/auth/permissions";
-
-export type AppModule = {
-  id: string;
-  name: string;
-  HeaderItem?: ComponentType;
-  nav: {
-    title: string;
-    href: string;
-    icon: LucideIcon;
-    permission?: Permission;
-    section: "dashboard" | "admin";
-  }[];
-};
+import type { AppModule } from "@/config/module-types";
+export type { AppModule, ModuleNavItem } from "@/config/module-types";
 
 // Module imports and installedModules entries each end with // module:<id> for module-remove.
 import { adminModule } from "@/modules/admin/module"; // module:admin

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { ValidationError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { getUploadsEnv } from "@/modules/uploads/env";
-import type { Storage } from "@/modules/uploads/server/storage";
+import type { Storage } from "@/modules/uploads/server/storage-types";
 import {
   hasExpectedPublicId,
   UPLOAD_RULES,

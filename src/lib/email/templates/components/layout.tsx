@@ -9,7 +9,7 @@ import {
   Preview,
   Section,
   Text,
-} from "@react-email/components";
+} from "react-email";
 import { site } from "@/config/site";
 
 export function EmailLayout({

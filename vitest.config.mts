@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 export default defineConfig({
   test: {
     environment: "jsdom",
+    setupFiles: ["./tests/setup/vitest.setup.ts"],
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     exclude: ["tests/e2e/**"],
   },

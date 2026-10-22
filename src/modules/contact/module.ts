@@ -1,5 +1,5 @@
 import { Inbox } from "lucide-react";
-import type { AppModule } from "@/config/modules";
+import type { AppModule } from "@/config/module-types";
 import { CONTACT_ROUTES } from "@/modules/contact/routes";
 
 export const contactModule: AppModule = {

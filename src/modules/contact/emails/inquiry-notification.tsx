@@ -1,4 +1,4 @@
-import { Text } from "@react-email/components";
+import { Text } from "react-email";
 import { site } from "@/config/site";
 import {
   EmailLayout,
@@ -22,7 +22,27 @@ export type InquiryEmailData = {
   updatedAt: Date;
 };
 
-export function InquiryNotification({ inquiry }: { inquiry: InquiryEmailData }) {
+export const previewInquiry = {
+  id: "inquiry-preview",
+  name: "Alex",
+  email: "alex@example.com",
+  phone: null,
+  subject: "Project inquiry",
+  message: "I would like to discuss a project.",
+  source: CONTACT_ROUTES.contact,
+  status: "NEW",
+  emailStatus: "PENDING",
+  ip: null,
+  userAgent: null,
+  createdAt: new Date("2026-10-22T10:00:00.000Z"),
+  updatedAt: new Date("2026-10-22T10:00:00.000Z"),
+} satisfies InquiryEmailData;
+
+export function InquiryNotification({
+  inquiry,
+}: {
+  inquiry: InquiryEmailData;
+}) {
   const rows = [
     ["Reference", inquiry.id],
     ["Name", inquiry.name],
@@ -72,10 +92,16 @@ export function InquiryNotification({ inquiry }: { inquiry: InquiryEmailData }) 
         </tbody>
       </table>
       <Text>
-        <PrimaryButton href={new URL(CONTACT_ROUTES.inquiry(inquiry.id), site.url).toString()}>
+        <PrimaryButton
+          href={new URL(
+            CONTACT_ROUTES.inquiry(inquiry.id),
+            site.url,
+          ).toString()}
+        >
           Open in admin
         </PrimaryButton>
       </Text>
     </EmailLayout>
   );
 }
+InquiryNotification.PreviewProps = { inquiry: previewInquiry };

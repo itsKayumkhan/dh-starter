@@ -1,5 +1,5 @@
 import { Images } from "lucide-react";
-import type { AppModule } from "@/config/modules";
+import type { AppModule } from "@/config/module-types";
 import { UPLOAD_ROUTES } from "@/modules/uploads/routes";
 
 export const uploadsModule: AppModule = {

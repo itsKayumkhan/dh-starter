@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { formatEnvError } from "@/lib/env/format-env-error";
 
 const optionalEnv = (value: unknown) => (value === "" ? undefined : value);
 const emailAddress = z.string().refine((value) => {
@@ -58,7 +59,12 @@ const serverEnvSchema = z
 
 let cached: z.infer<typeof serverEnvSchema> | undefined;
 export function getServerEnv() {
-  cached ??= serverEnvSchema.parse(process.env);
+  if (!cached) {
+    const parsed = serverEnvSchema.safeParse(process.env);
+    if (!parsed.success)
+      throw new Error(formatEnvError(parsed.error, { source: ".env.example" }));
+    cached = parsed.data;
+  }
   return cached;
 }
 
@@ -69,7 +75,9 @@ export function getServerEnv() {
 export function assertProductionRuntimeEnv() {
   const env = getServerEnv();
   if (env.NODE_ENV === "production" && env.EMAIL_PROVIDER === "console")
-    throw new Error("EMAIL_PROVIDER=console is not allowed in production. Use resend or smtp.");
+    throw new Error(
+      "EMAIL_PROVIDER=console is not allowed in production. Use resend or smtp.",
+    );
 }
 
 export function isGoogleAuthEnabled() {

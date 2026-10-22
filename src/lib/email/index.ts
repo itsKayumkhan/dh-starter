@@ -1,6 +1,6 @@
 import "server-only";
 import type { ReactElement } from "react";
-import { render } from "@react-email/components";
+import { render } from "react-email";
 import { getServerEnv } from "@/lib/env/server";
 import { providers } from "@/lib/email/providers";
 import { AppError } from "@/lib/errors";

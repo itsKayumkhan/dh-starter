@@ -1,5 +1,5 @@
 import { Bell, Megaphone } from "lucide-react";
-import type { AppModule } from "@/config/modules";
+import type { AppModule } from "@/config/module-types";
 import { NotificationBell } from "@/modules/notifications/components/notification-bell";
 import { NOTIFICATION_MESSAGES } from "@/modules/notifications/messages";
 import { NOTIFICATION_ROUTES } from "@/modules/notifications/routes";
