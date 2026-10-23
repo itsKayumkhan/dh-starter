@@ -1,5 +1,7 @@
 import { APP_URL } from "@/lib/env/client";
 
+export type ThemeMode = "light" | "dark" | "system";
+
 export const site = {
   name: "DH Starter",
   url: APP_URL,
@@ -12,6 +14,36 @@ export const site = {
     background: "#ffffff",
     foreground: "#111827",
     muted: "#64748b",
+  },
+  theme: {
+    defaultMode: "system" as ThemeMode,
+    allowedModes: ["light", "dark", "system"] as ThemeMode[],
+  },
+  email: {
+    fontFamily: "Arial, Helvetica, sans-serif",
+    backgroundColor: "#ffffff",
+    textColor: "#111827",
+    borderColor: "#64748b",
+    headerColor: "#111827",
+    footerColor: "#111827",
+    footerMutedColor: "#64748b",
+    buttonBackgroundColor: "#0f172a",
+    buttonTextColor: "#ffffff",
+    buttonRadius: 6,
+    buttonTextDecoration: "none",
+    bodyPadding: "24px 12px",
+    bodyMargin: "0",
+    containerWidth: "100%",
+    containerMaxWidth: 600,
+    containerMargin: "0 auto",
+    containerPadding: 24,
+    borderWidth: 1,
+    headerFontSize: 20,
+    headerFontWeight: 700,
+    footerMarginTop: 32,
+    buttonPadding: "12px 20px",
+    logoWidth: 32,
+    logoHeight: 32,
   },
   supportEmail: "support@dhstarter.test",
   address: "Digital Heroes, Your business address",

@@ -1,6 +1,5 @@
 import { Text } from "react-email";
-import { site } from "@/config/site";
-import type { SiteSettings } from "@/config/settings";
+import { settingsDefaults, type SiteSettings } from "@/config/settings";
 import { ROUTES } from "@/lib/constants/routes";
 import {
   EmailLayout,
@@ -8,7 +7,7 @@ import {
 } from "@/lib/email/templates/components/layout";
 export function Welcome({
   name,
-  settings = site,
+  settings = settingsDefaults,
 }: {
   name: string;
   settings?: SiteSettings;

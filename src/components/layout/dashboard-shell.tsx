@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { ChevronDown, Monitor, Moon, Sun } from "lucide-react";
 import { installedModules } from "@/config/modules";
+import { site as siteConfig } from "@/config/site";
 import type { SiteSettings } from "@/config/settings";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { AUTH_ROUTES } from "@/components/auth/routes";
@@ -59,18 +60,18 @@ function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => setTheme("light")}>
-          <Sun aria-hidden="true" />
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => setTheme("dark")}>
-          <Moon aria-hidden="true" />
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => setTheme("system")}>
-          <Monitor aria-hidden="true" />
-          System
-        </DropdownMenuItem>
+        {siteConfig.theme.allowedModes.map((mode) => (
+          <DropdownMenuItem key={mode} onSelect={() => setTheme(mode)}>
+            {mode === "light" ? (
+              <Sun aria-hidden="true" />
+            ) : mode === "dark" ? (
+              <Moon aria-hidden="true" />
+            ) : (
+              <Monitor aria-hidden="true" />
+            )}
+            {mode === "light" ? "Light" : mode === "dark" ? "Dark" : "System"}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -190,7 +191,7 @@ export function DashboardShell({
           {installedModules.map((module) =>
             module.HeaderItem ? <module.HeaderItem key={module.id} /> : null,
           )}
-          <ThemeToggle />
+          {siteConfig.theme.allowedModes.length > 1 ? <ThemeToggle /> : null}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

@@ -41,6 +41,150 @@ const fields = [
   },
   { name: "colors.muted", label: "Muted", type: "color", group: "Colors" },
   {
+    name: "email.fontFamily",
+    label: "Font stack",
+    type: "text",
+    group: "Email",
+  },
+  {
+    name: "email.backgroundColor",
+    label: "Background color",
+    type: "color",
+    group: "Email",
+  },
+  {
+    name: "email.textColor",
+    label: "Text color",
+    type: "color",
+    group: "Email",
+  },
+  {
+    name: "email.borderColor",
+    label: "Border color",
+    type: "color",
+    group: "Email",
+  },
+  {
+    name: "email.headerColor",
+    label: "Header color",
+    type: "color",
+    group: "Email",
+  },
+  {
+    name: "email.footerColor",
+    label: "Footer color",
+    type: "color",
+    group: "Email",
+  },
+  {
+    name: "email.footerMutedColor",
+    label: "Footer muted color",
+    type: "color",
+    group: "Email",
+  },
+  {
+    name: "email.buttonBackgroundColor",
+    label: "Button background color",
+    type: "color",
+    group: "Email",
+  },
+  {
+    name: "email.buttonTextColor",
+    label: "Button text color",
+    type: "color",
+    group: "Email",
+  },
+  {
+    name: "email.buttonRadius",
+    label: "Button radius (px)",
+    type: "number",
+    group: "Email",
+  },
+  {
+    name: "email.buttonTextDecoration",
+    label: "Button text decoration",
+    type: "text",
+    group: "Email",
+  },
+  {
+    name: "email.buttonPadding",
+    label: "Button padding",
+    type: "text",
+    group: "Email",
+  },
+  {
+    name: "email.bodyPadding",
+    label: "Body padding",
+    type: "text",
+    group: "Email",
+  },
+  {
+    name: "email.bodyMargin",
+    label: "Body margin",
+    type: "text",
+    group: "Email",
+  },
+  {
+    name: "email.containerWidth",
+    label: "Container width",
+    type: "text",
+    group: "Email",
+  },
+  {
+    name: "email.containerMaxWidth",
+    label: "Container max width (px)",
+    type: "number",
+    group: "Email",
+  },
+  {
+    name: "email.containerMargin",
+    label: "Container margin",
+    type: "text",
+    group: "Email",
+  },
+  {
+    name: "email.containerPadding",
+    label: "Container padding (px)",
+    type: "number",
+    group: "Email",
+  },
+  {
+    name: "email.borderWidth",
+    label: "Border width (px)",
+    type: "number",
+    group: "Email",
+  },
+  {
+    name: "email.headerFontSize",
+    label: "Header font size (px)",
+    type: "number",
+    group: "Email",
+  },
+  {
+    name: "email.headerFontWeight",
+    label: "Header font weight",
+    type: "number",
+    group: "Email",
+  },
+  {
+    name: "email.footerMarginTop",
+    label: "Footer top margin (px)",
+    type: "number",
+    group: "Email",
+  },
+  {
+    name: "email.logoWidth",
+    label: "Logo width (px)",
+    type: "number",
+    group: "Email",
+  },
+  {
+    name: "email.logoHeight",
+    label: "Logo height (px)",
+    type: "number",
+    group: "Email",
+  },
+  {
     name: "supportEmail",
     label: "Support email",
     type: "email",
@@ -75,7 +219,7 @@ const fields = [
   group: string;
 }[];
 
-function atPath(value: object, path: string): string {
+function atPath(value: object, path: string): string | number {
   return path
     .split(".")
     .reduce<unknown>(
@@ -84,7 +228,7 @@ function atPath(value: object, path: string): string {
           ? (current as Record<string, unknown>)[part]
           : undefined,
       value,
-    ) as string;
+    ) as string | number;
 }
 
 export function SettingsForm({ initialValue }: { initialValue: SiteSettings }) {
@@ -108,7 +252,7 @@ export function SettingsForm({ initialValue }: { initialValue: SiteSettings }) {
 
   return (
     <form onSubmit={submit} noValidate className="space-y-8">
-      {["Brand", "Colors", "Contact", "Social", "SEO"].map((group) => (
+      {["Brand", "Colors", "Email", "Contact", "Social", "SEO"].map((group) => (
         <section key={group} className="space-y-4 rounded-lg border p-5">
           <h2 className="text-lg font-semibold">{group}</h2>
           {fields
@@ -159,7 +303,9 @@ export function SettingsForm({ initialValue }: { initialValue: SiteSettings }) {
                       id={`setting-${field.name}`}
                       type={field.type}
                       aria-invalid={Boolean(errorText)}
-                      {...form.register(field.name)}
+                      {...form.register(field.name, {
+                        valueAsNumber: field.type === "number",
+                      })}
                     />
                   )}
                   {field.name === "logo" ? (

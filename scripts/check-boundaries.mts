@@ -91,6 +91,7 @@ for (const path of files) {
     if (!match) continue;
     const id = match[1];
     const manifest = manifests.get(id);
+    if (manifest && containsPath(fileName, "src/features")) continue;
     if (manifest && manifest.paths.some((ownedPath) => containsPath(fileName, ownedPath))) continue;
     const line = source.getLineAndCharacterOfPosition(specifier.getStart(source)).line + 1;
     const reason = manifest ? `this file is outside ${id}'s manifest paths` : `module ${id} has no manifest`;

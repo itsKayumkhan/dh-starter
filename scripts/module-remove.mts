@@ -1,6 +1,7 @@
 import { readdir, readFile, rm, writeFile } from "node:fs/promises";
-import { resolve, relative, join } from "node:path";
+import { resolve, relative, join, sep } from "node:path";
 import { spawnSync } from "node:child_process";
+import ts from "typescript";
 import { z } from "zod";
 
 const manifestSchema = z.object({
@@ -16,6 +17,7 @@ const manifestSchema = z.object({
 const root = process.cwd();
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
+const force = args.includes("--force");
 const id = z
   .string()
   .regex(/^[a-z][a-z0-9-]*$/)
@@ -63,6 +65,70 @@ const targets = [...manifest.paths, ...manifest.prismaFiles].map((path) => ({
   path,
   full: checkedPath(path),
 }));
+function repoPath(path: string) {
+  return relative(root, path).split(sep).join("/");
+}
+function containsPath(path: string, ownedPath: string) {
+  const prefix = ownedPath.replaceAll("\\", "/").replace(/\/$/, "");
+  return path === prefix || path.startsWith(`${prefix}/`);
+}
+async function sourceFiles(dir: string): Promise<string[]> {
+  const files: string[] = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...await sourceFiles(path));
+    else if (entry.isFile() && /\.[cm]?[jt]sx?$/.test(entry.name)) files.push(path);
+  }
+  return files;
+}
+function importedSpecifiers(file: ts.SourceFile) {
+  const imports: ts.StringLiteralLike[] = [];
+  function visit(node: ts.Node) {
+    if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+        node.moduleSpecifier && ts.isStringLiteralLike(node.moduleSpecifier)) {
+      imports.push(node.moduleSpecifier);
+    } else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument) &&
+        ts.isStringLiteralLike(node.argument.literal)) {
+      imports.push(node.argument.literal);
+    } else if (ts.isImportEqualsDeclaration(node) &&
+        ts.isExternalModuleReference(node.moduleReference) &&
+        node.moduleReference.expression && ts.isStringLiteralLike(node.moduleReference.expression)) {
+      imports.push(node.moduleReference.expression);
+    } else if (ts.isCallExpression(node) && node.arguments.length > 0 &&
+        ts.isStringLiteralLike(node.arguments[0])) {
+      const callee = node.expression;
+      const isImport = callee.kind === ts.SyntaxKind.ImportKeyword;
+      const isLoader = ts.isIdentifier(callee) && callee.text === "require";
+      const isMock = ts.isPropertyAccessExpression(callee) &&
+        ["mock", "doMock", "importActual", "importMock"].includes(callee.name.text);
+      if (isImport || isLoader || isMock) imports.push(node.arguments[0]);
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(file);
+  return imports;
+}
+const references: string[] = [];
+for (const path of await sourceFiles(resolve(root, "src"))) {
+  const fileName = repoPath(path);
+  if (fileName === "src/config/modules.ts" ||
+      manifest.paths.some((ownedPath) => containsPath(fileName, ownedPath))) continue;
+  const source = ts.createSourceFile(fileName, await readFile(path, "utf8"), ts.ScriptTarget.Latest, true);
+  for (const specifier of importedSpecifiers(source)) {
+    if (specifier.text !== `@/modules/${id}` &&
+        !specifier.text.startsWith(`@/modules/${id}/`)) continue;
+    const line = source.getLineAndCharacterOfPosition(specifier.getStart(source)).line + 1;
+    references.push(`${fileName}:${line}: ${specifier.text}`);
+  }
+}
+if (references.length) {
+  const output = `References to ${id} outside its manifest paths:\n${references.join("\n")}\n`;
+  if (dryRun || force) process.stdout.write(output);
+  else {
+    process.stderr.write(`${output}Removal stopped. Pass --force to remove the module anyway.\n`);
+    process.exit(1);
+  }
+}
 const registryPath = resolve(root, "src/config/modules.ts");
 const registry = await readFile(registryPath, "utf8");
 const nextRegistry = registry

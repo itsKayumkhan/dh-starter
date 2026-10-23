@@ -21,7 +21,7 @@ describe("ContactForm", () => {
     expect(submitInquiry).not.toHaveBeenCalled();
   });
 
-  it("shows a pending state and success receipt", async () => {
+  it("shows a pending state and resets after success", async () => {
     let resolve: (result: { ok: true; data: null }) => void = () => {};
     submitInquiry.mockReturnValue(
       new Promise((done) => {
@@ -55,10 +55,11 @@ describe("ContactForm", () => {
     );
     resolve({ ok: true, data: null });
     await waitFor(() =>
-      expect(screen.getByRole("status")).toHaveProperty(
-        "textContent",
-        "Thanks, your inquiry has been received.",
+      expect(screen.getByRole("textbox", { name: "Name" })).toHaveProperty(
+        "value",
+        "",
       ),
     );
+    expect(screen.getByRole("button", { name: "Sent" })).toBeTruthy();
   });
 });
