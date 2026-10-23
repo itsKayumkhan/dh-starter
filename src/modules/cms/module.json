@@ -1,0 +1,14 @@
+{
+  "id": "cms",
+  "name": "Content management",
+  "description": "Site settings and editable content blocks",
+  "paths": [
+    "src/modules/cms",
+    "src/app/(dashboard)/admin/cms",
+    "tests/e2e/cms.spec.ts"
+  ],
+  "prismaFiles": [],
+  "packages": [],
+  "envKeys": [],
+  "dependsOn": ["admin"]
+}

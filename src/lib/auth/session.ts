@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { headers } from "next/headers";
+import { connection } from "next/server";
 import { forbidden, redirect, unstable_rethrow } from "next/navigation";
 import { auth } from "@/lib/auth/server";
 import { can, type Permission, type Role } from "@/lib/auth/permissions";
@@ -9,6 +10,8 @@ import { ROUTES } from "@/lib/constants/routes";
 
 export const getSession = cache(async () => {
   try {
+    // Session checks read the clock (expiry); mark this as request-time work for cacheComponents.
+    await connection();
     const session = await auth.api.getSession({ headers: await headers() });
     return session?.user && !session.user.banned ? session : null;
   } catch (error) {

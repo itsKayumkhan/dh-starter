@@ -1,14 +1,25 @@
 import { Text } from "react-email";
+import type { SiteSettings } from "@/config/settings";
 import {
   EmailLayout,
   PrimaryButton,
 } from "@/lib/email/templates/components/layout";
-export function VerifyEmail({ name, url }: { name: string; url: string }) {
+export function VerifyEmail({
+  name,
+  url,
+  settings,
+}: {
+  name: string;
+  url: string;
+  settings?: SiteSettings;
+}) {
   return (
-    <EmailLayout preview="Verify your email">
+    <EmailLayout preview="Verify your email" settings={settings}>
       <Text>Hello {name},</Text>
       <Text>Confirm your email address to finish setting up your account.</Text>
-      <PrimaryButton href={url}>Verify email</PrimaryButton>
+      <PrimaryButton href={url} settings={settings}>
+        Verify email
+      </PrimaryButton>
     </EmailLayout>
   );
 }

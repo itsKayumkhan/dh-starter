@@ -1,1 +1,0 @@
-- [ ] **src/lib/auth/server.ts:13** - enable Better Auth account deletion and test it with a real database + the danger zone currently receives an endpoint-disabled response.

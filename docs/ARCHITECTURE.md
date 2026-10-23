@@ -4,21 +4,21 @@ Reusable Next.js full-stack starter for Digital Heroes projects. Clone it, set e
 
 ## Stack
 
-| Layer | Choice |
-|---|---|
-| Framework | Next.js 16 App Router, React 19, TypeScript strict |
-| Database | PostgreSQL through **Prisma 7** (driver adapter `@prisma/adapter-pg`). Local: `npx prisma dev` (no Docker needed) or `docker-compose.yml`. Cloud: Supabase, Neon, any Postgres. Only `DATABASE_URL` changes. |
-| Auth | **Better Auth** with Prisma adapter (email/password, email verification, password reset, Google OAuth, sessions in DB) |
-| Validation | Zod 4 at every boundary |
-| Forms | react-hook-form + `@hookform/resolvers/zod` + shadcn `field` components |
-| UI | Tailwind 4, shadcn/ui (radix-nova), Lucide icons, Sonner toasts, next-themes |
-| Tables / URL state | TanStack Table + nuqs (server pagination, filters in URL) |
-| Client server-state | TanStack Query (only where client fetching is really needed) |
-| Email | provider adapter: Resend, SMTP (nodemailer), console (dev only). Templates in React Email. |
-| Uploads | Cloudinary signed uploads (next-cloudinary) |
-| Payments | Stripe (Checkout, subscriptions, customer portal, idempotent webhooks) |
-| Tests | Vitest (unit), Playwright (e2e) |
-| CI | GitHub Actions: lint, typecheck, test, build |
+| Layer               | Choice                                                                                                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Framework           | Next.js 16 App Router, React 19, TypeScript strict                                                                                                                                                           |
+| Database            | PostgreSQL through **Prisma 7** (driver adapter `@prisma/adapter-pg`). Local: `npx prisma dev` (no Docker needed) or `docker-compose.yml`. Cloud: Supabase, Neon, any Postgres. Only `DATABASE_URL` changes. |
+| Auth                | **Better Auth** with Prisma adapter (email/password, email verification, password reset, Google OAuth, sessions in DB)                                                                                       |
+| Validation          | Zod 4 at every boundary                                                                                                                                                                                      |
+| Forms               | react-hook-form + `@hookform/resolvers/zod` + shadcn `field` components                                                                                                                                      |
+| UI                  | Tailwind 4, shadcn/ui (radix-nova), Lucide icons, Sonner toasts, next-themes                                                                                                                                 |
+| Tables / URL state  | TanStack Table + nuqs (server pagination, filters in URL)                                                                                                                                                    |
+| Client server-state | TanStack Query (only where client fetching is really needed)                                                                                                                                                 |
+| Email               | provider adapter: Resend, SMTP (nodemailer), console (dev only). Templates in React Email.                                                                                                                   |
+| Uploads             | Cloudinary signed uploads (next-cloudinary)                                                                                                                                                                  |
+| Payments            | Stripe (Checkout, subscriptions, customer portal, idempotent webhooks)                                                                                                                                       |
+| Tests               | Vitest (unit), Playwright (e2e)                                                                                                                                                                              |
+| CI                  | GitHub Actions: lint, typecheck, test, build                                                                                                                                                                 |
 
 ## Core vs modules
 
@@ -92,10 +92,18 @@ src/
   "id": "billing",
   "name": "Stripe billing",
   "description": "Checkout, subscriptions, customer portal, webhooks",
-  "paths": ["src/modules/billing", "src/app/api/billing", "src/app/(dashboard)/dashboard/billing"],
+  "paths": [
+    "src/modules/billing",
+    "src/app/api/billing",
+    "src/app/(dashboard)/dashboard/billing"
+  ],
   "prismaFiles": ["prisma/schema/billing.prisma"],
   "packages": ["stripe", "@stripe/stripe-js", "@stripe/react-stripe-js"],
-  "envKeys": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"],
+  "envKeys": [
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
+  ],
   "dependsOn": []
 }
 ```
@@ -103,6 +111,7 @@ src/
 `src/config/modules.ts` imports each module's `module.ts` on a line ending with `// module:<id>` and lists it in `installedModules` on a line ending with `// module:<id>`. `scripts/module-remove.mts` deletes `paths` + `prismaFiles`, removes those marked lines, removes `envKeys` from `.env.example`, and runs `npm uninstall` for `packages` not used elsewhere. Then the dev runs `npx prisma migrate dev` to drop the tables.
 
 Module rules:
+
 - A module imports from core (`@/lib`, `@/components`, `@/config/site`) and never from another module, unless listed in `dependsOn`.
 - A module's env keys are validated inside `src/modules/<id>/env.ts`, lazily, so a project without that module never needs those keys.
 - Core never imports a module. The only link is `src/config/modules.ts`.
@@ -125,8 +134,14 @@ Module rules:
 
 ## Seed logins (dev only)
 
-| Role | Email | Password |
-|---|---|---|
+| Role  | Email                | Password            |
+| ----- | -------------------- | ------------------- |
 | admin | admin@dhstarter.test | DhStarter@Admin2026 |
 | staff | staff@dhstarter.test | DhStarter@Staff2026 |
-| user | user@dhstarter.test | DhStarter@User2026 |
+| user  | user@dhstarter.test  | DhStarter@User2026  |
+
+## Core content and CMS
+
+Content reading is core so public marketing pages never import a removable module. `prisma/schema/content.prisma` contains `SiteSetting` and `ContentBlock`, both keyed JSON records. `src/config/settings.ts` defines editable site settings and validation; `src/config/content.ts` is the typed project-specific content registry with schemas, defaults and editor field definitions. `src/lib/content/settings.ts` and `src/lib/content/blocks.ts` validate stored values, fall back to defaults for missing or unavailable data, and cache reads with `use cache`, `cacheLife` and tags. Mutations invalidate `site-settings` or `content:<key>` with `updateTag`.
+
+The removable `cms` module depends on `admin` and owns `/admin/cms/settings` and `/admin/cms/content`. Admins edit settings and blocks; staff edit blocks; regular users cannot access the editors. CMS actions use `safeAction`, Zod validation, audit records and cache invalidation. The module has no database tables of its own. Removing CMS deletes the editor, while core content reads, database records and public defaults remain. The editor accepts public image URLs; an uploads integration requires an explicit module dependency.

@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
-import { site } from "@/config/site";
+import { getSiteSettings } from "@/lib/content/settings";
 import { ROUTES } from "@/lib/constants/routes";
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const site = await getSiteSettings();
   return {
     rules: {
       userAgent: "*",

@@ -1,4 +1,6 @@
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
+import { render } from "react-email";
+import { settingsDefaults } from "@/config/settings";
 import { site } from "@/config/site";
 import { ROUTES } from "@/lib/constants/routes";
 import { InviteUser } from "@/lib/email/templates/invite-user";
@@ -42,4 +44,16 @@ describe("core email templates", () => {
       await expectBrandedEmail(element, ctaUrl);
     });
   }
+  it("renders the edited brand during sendEmail rendering", async () => {
+    const brand = {
+      ...settingsDefaults,
+      name: "Edited Brand",
+      address: "Edited Address",
+      colors: { ...settingsDefaults.colors, primary: "#123456" },
+    };
+    const html = await render(<Welcome name="Alex" settings={brand} />);
+    expect(html).toContain("Edited Brand");
+    expect(html).toContain("Edited Address");
+    expect(html).toContain("#123456");
+  });
 });

@@ -16,4 +16,8 @@ export const site = {
   supportEmail: "support@dhstarter.test",
   address: "Digital Heroes, Your business address",
   social: { website: APP_URL, instagram: "", linkedin: "", x: "" },
+  seo: {
+    titleTemplate: "%s | DH Starter",
+    description: "A reusable foundation for Digital Heroes projects.",
+  },
 } as const;

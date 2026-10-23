@@ -156,8 +156,7 @@ if (!dryRun) {
   spawnSync("npx", ["next", "typegen"], { cwd: root, stdio: "inherit", shell: true });
 }
 process.stdout.write(
-  `Next steps:
-  1. npx prisma migrate dev --name remove_${id}   (drops this module tables)
-  2. npm run typecheck && npm run build
-`,
+  manifest.prismaFiles.length
+    ? `Next steps:\n  1. npx prisma migrate dev --name remove_${id}   (drops this module tables)\n  2. npm run typecheck && npm run build\n`
+    : "Next steps:\n  1. npm run typecheck && npm run build\n",
 );

@@ -1,4 +1,5 @@
 import { Text } from "react-email";
+import type { SiteSettings } from "@/config/settings";
 import {
   EmailLayout,
   PrimaryButton,
@@ -8,17 +9,23 @@ export function Notification({
   body,
   url,
   cta,
+  settings,
 }: {
   title: string;
   body: string;
   url?: string;
   cta?: string;
+  settings?: SiteSettings;
 }) {
   return (
-    <EmailLayout preview={title}>
+    <EmailLayout preview={title} settings={settings}>
       <Text style={{ fontSize: 20, fontWeight: 700 }}>{title}</Text>
       <Text>{body}</Text>
-      {url && cta ? <PrimaryButton href={url}>{cta}</PrimaryButton> : null}
+      {url && cta ? (
+        <PrimaryButton href={url} settings={settings}>
+          {cta}
+        </PrimaryButton>
+      ) : null}
     </EmailLayout>
   );
 }

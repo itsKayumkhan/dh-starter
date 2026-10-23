@@ -7,6 +7,7 @@ import { uploadsModule } from "@/modules/uploads/module"; // module:uploads
 import { billingModule } from "@/modules/billing/module"; // module:billing
 import { notificationsModule } from "@/modules/notifications/module"; // module:notifications
 import { contactModule } from "@/modules/contact/module"; // module:contact
+import { cmsModule } from "@/modules/cms/module"; // module:cms
 
 export const installedModules: AppModule[] = [
   adminModule, // module:admin
@@ -14,4 +15,5 @@ export const installedModules: AppModule[] = [
   billingModule, // module:billing
   notificationsModule, // module:notifications
   contactModule, // module:contact
+  cmsModule, // module:cms
 ];

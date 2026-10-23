@@ -1,4 +1,5 @@
 import "server-only";
+import { createElement } from "react";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin } from "better-auth/plugins";
@@ -23,7 +24,7 @@ export const auth = betterAuth({
       await sendEmail({
         to: user.email,
         subject: "Reset your password",
-        react: ResetPassword({ name: user.name, url }),
+        react: createElement(ResetPassword, { name: user.name, url }),
       });
     },
   },
@@ -34,7 +35,7 @@ export const auth = betterAuth({
       await sendEmail({
         to: user.email,
         subject: "Verify your email",
-        react: VerifyEmail({ name: user.name, url }),
+        react: createElement(VerifyEmail, { name: user.name, url }),
       });
     },
   },

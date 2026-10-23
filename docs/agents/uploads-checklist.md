@@ -1,2 +1,0 @@
-- [ ] **src/modules/uploads/env.ts:5** - Set the production Cloudinary cloud name, API key, API secret, and unique folder prefix + signed uploads and Admin API verification cannot run without production credentials.
-- [ ] **src/modules/uploads/upload-rules.ts:3** - Review allowed formats, folder sizes, and the Cloudinary account's upload restrictions + production media policy may require different limits.

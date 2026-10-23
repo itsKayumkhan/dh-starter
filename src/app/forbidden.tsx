@@ -2,10 +2,11 @@ import Link from "next/link";
 import { ShieldX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { site } from "@/config/site";
+import { getSiteSettings } from "@/lib/content/settings";
 import { ROUTES } from "@/lib/constants/routes";
 
-export default function Forbidden() {
+export default async function Forbidden() {
+  const site = await getSiteSettings();
   return (
     <main className="flex min-h-[70vh] items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">

@@ -18,4 +18,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Do NOT edit `package.json` or `package-lock.json` and do NOT run `npm install`. If something is missing, write it in `docs/agents/<your-task>-needs.md`.
 - Do NOT run `next build`, `next dev` or `prisma migrate` unless your task allows it. Verify with `npx tsc --noEmit -p .` and `npx eslint <your paths>`; only fix errors in files you own.
 - Do NOT run git commands that change state (no commit, checkout, stash, reset).
-- When finished, write `docs/agents/<your-task>-done.md`: files created, how to use, env keys, anything left TODO.
+- When finished, write `docs/agents/<your-task>-done.md` (gitignored, for the lead only): files created, how to use, env keys, open issues.

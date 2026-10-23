@@ -54,3 +54,6 @@ next-env.d.ts
 
 # personal Claude Code settings (team settings live in .claude/settings.json)
 /.claude/settings.local.json
+
+# temporary handoff notes from parallel agent waves (never committed)
+/docs/agents/

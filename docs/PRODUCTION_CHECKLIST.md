@@ -6,6 +6,9 @@
 - [ ] **.env.example:14** - Replace console email provider with Resend or SMTP + console delivery is disabled in production.
 - [ ] **.env.example:4** - Set a new unique BETTER_AUTH_SECRET in production + shared development secrets can compromise sessions.
 - [ ] **src/config/site.ts:6** - Replace placeholder description, logo, email, address and social links + outgoing pages and emails must carry the client brand.
+- [ ] **src/config/site.ts:19** - Replace the starter SEO title template and description + default metadata must match the project brand.
+- [ ] **src/config/content.ts:21** - Replace the starter hero and empty feature, FAQ and testimonial defaults + public pages need project-specific content when the database has no rows.
+- [ ] **src/config/content.ts:53** - Review contact and pricing intro defaults + customer-facing copy must match the live offer.
 - [ ] **.env.example:2** - Replace example local database credentials for each deployment + example values must never point at a production database.
 - [ ] **.github/workflows/ci.yml:8** - Keep CI dummy credentials isolated from deployment secrets + build checks do not need live services.
 - [ ] **prisma.config.ts:13** - Supply a real DATABASE_URL before migrating + the fallback URL is intentionally invalid.
@@ -47,3 +50,9 @@
 - [ ] **src/modules/contact/env.ts:13** - Set CONTACT_NOTIFY_EMAIL to a real monitored inbox + the fallback site support address is a starter placeholder.
 - [ ] **src/config/site.ts:14** - Replace the starter support email address + contact details and fallback notification delivery need a real address.
 - [ ] **src/config/site.ts:15** - Replace the starter business address + it is displayed on the contact page and email footer.
+
+## Module: cms
+
+- [ ] **src/modules/cms/components/settings-form.tsx:19** - Confirm the public logo URL and social links before launch + placeholders or broken links would appear in public pages and emails.
+- [ ] **src/modules/cms/components/block-form.tsx:45** - Add a project-specific uploads flow if editors need file picking + this removable module currently accepts public image URLs only.
+- [ ] **tests/e2e/cms.spec.ts:25** - Keep the seeded account credentials in local test environments only + public starter credentials must never be valid in production.

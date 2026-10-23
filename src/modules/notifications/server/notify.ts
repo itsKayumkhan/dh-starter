@@ -2,7 +2,7 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 import { createElement } from "react";
 import { z } from "zod";
-import { site } from "@/config/site";
+import { getSiteSettings } from "@/lib/content/settings";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { Notification } from "@/lib/email/templates/notification";
@@ -29,6 +29,7 @@ export async function notify(
   let created = 0;
   let emailed = 0;
   let emailFailed = 0;
+  const site = options?.email ? await getSiteSettings() : null;
   for (let offset = 0; offset < ids.length; offset += 500) {
     const recipients = await db.user.findMany({
       where: { id: { in: ids.slice(offset, offset + 500) }, banned: false },
@@ -50,7 +51,7 @@ export async function notify(
               body: data.body,
               ...(data.href
                 ? {
-                    url: new URL(data.href, site.url).toString(),
+                    url: new URL(data.href, site?.url).toString(),
                     cta: "View notification",
                   }
                 : {}),

@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({ headers: vi.fn(async () => new Headers()) }));
+vi.mock("next/server", () => ({ connection: vi.fn(async () => undefined) }));
 vi.mock("next/navigation", () => ({
   forbidden: mocks.forbidden,
   redirect: mocks.redirect,

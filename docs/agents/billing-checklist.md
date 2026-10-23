@@ -1,9 +1,0 @@
-- [ ] **src/modules/billing/plans.ts:21** - Replace the Starter placeholder Stripe Price ID + checkout cannot start with a placeholder.
-- [ ] **src/modules/billing/plans.ts:30** - Replace the Pro placeholder Stripe Price ID + checkout cannot start with a placeholder.
-- [ ] **src/modules/billing/plans.ts:42** - Replace the one-time setup placeholder Stripe Price ID + checkout cannot start with a placeholder.
-- [ ] **src/modules/billing/plans.ts:23** - Match the Starter display amount to its live Stripe Price + customers must see the amount charged by Stripe.
-- [ ] **src/modules/billing/plans.ts:32** - Match the Pro display amount to its live Stripe Price + customers must see the amount charged by Stripe.
-- [ ] **src/modules/billing/plans.ts:43** - Match the one-time setup display amount to its live Stripe Price + customers must see the amount charged by Stripe.
-- [ ] **src/modules/billing/plans.ts:18** - Replace example Starter name, description and features with the actual offer + marketing copy must describe the delivered service.
-- [ ] **src/modules/billing/plans.ts:27** - Replace example Pro name, description and features with the actual offer + marketing copy must describe the delivered service.
-- [ ] **src/modules/billing/plans.ts:39** - Replace or remove the example setup session product + do not offer an unavailable service.

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { ChevronDown, Monitor, Moon, Sun } from "lucide-react";
 import { installedModules } from "@/config/modules";
-import { site } from "@/config/site";
+import type { SiteSettings } from "@/config/settings";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { AUTH_ROUTES } from "@/components/auth/routes";
 import { visibleNav, type ShellUser } from "@/components/layout/navigation";
@@ -78,9 +78,11 @@ function ThemeToggle() {
 
 export function DashboardShell({
   user,
+  site,
   children,
 }: {
   user: ShellUser;
+  site: SiteSettings;
   children: ReactNode;
 }) {
   const pathname = usePathname();

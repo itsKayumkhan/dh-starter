@@ -1,10 +1,15 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { site } from "@/config/site";
+import { getSiteSettings } from "@/lib/content/settings";
 import { ROUTES } from "@/lib/constants/routes";
 import { MESSAGES } from "@/lib/constants/messages";
 
-export default function MarketingLayout({ children }: { children: ReactNode }) {
+export default async function MarketingLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const site = await getSiteSettings();
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b">

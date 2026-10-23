@@ -1,5 +1,6 @@
 import { Text } from "react-email";
 import { site } from "@/config/site";
+import type { SiteSettings } from "@/config/settings";
 import {
   EmailLayout,
   PrimaryButton,
@@ -40,8 +41,10 @@ export const previewInquiry = {
 
 export function InquiryNotification({
   inquiry,
+  settings = site,
 }: {
   inquiry: InquiryEmailData;
+  settings?: SiteSettings;
 }) {
   const rows = [
     ["Reference", inquiry.id],
@@ -59,7 +62,10 @@ export function InquiryNotification({
     ["Updated", inquiry.updatedAt.toISOString()],
   ];
   return (
-    <EmailLayout preview={`New inquiry from ${inquiry.name}`}>
+    <EmailLayout
+      preview={`New inquiry from ${inquiry.name}`}
+      settings={settings}
+    >
       <Text style={{ fontSize: 20, fontWeight: 700 }}>New contact inquiry</Text>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <tbody>
@@ -72,7 +78,7 @@ export function InquiryNotification({
                   padding: "10px 8px",
                   textAlign: "left",
                   verticalAlign: "top",
-                  borderBottom: `1px solid ${site.colors.muted}`,
+                  borderBottom: `1px solid ${settings.colors.muted}`,
                 }}
               >
                 {label}
@@ -82,7 +88,7 @@ export function InquiryNotification({
                   padding: "10px 8px",
                   whiteSpace: "pre-wrap",
                   overflowWrap: "anywhere",
-                  borderBottom: `1px solid ${site.colors.muted}`,
+                  borderBottom: `1px solid ${settings.colors.muted}`,
                 }}
               >
                 {value}
@@ -95,8 +101,9 @@ export function InquiryNotification({
         <PrimaryButton
           href={new URL(
             CONTACT_ROUTES.inquiry(inquiry.id),
-            site.url,
+            settings.url,
           ).toString()}
+          settings={settings}
         >
           Open in admin
         </PrimaryButton>

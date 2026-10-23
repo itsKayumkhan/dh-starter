@@ -10,6 +10,7 @@ export const PERMISSIONS = {
   "notifications:send": ["staff", "admin"],
   "inquiries:read": ["staff", "admin"],
   "settings:write": ["admin"],
+  "content:write": ["staff", "admin"],
 } as const satisfies Record<string, readonly Role[]>;
 export type Permission = keyof typeof PERMISSIONS;
 

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { site } from "@/config/site";
 
 const schema = z.object({
   CONTACT_NOTIFY_EMAIL: z.preprocess(
@@ -10,14 +9,16 @@ const schema = z.object({
 
 export function getContactEnv() {
   const env = schema.parse(process.env);
-  return { notifyEmail: env.CONTACT_NOTIFY_EMAIL ?? site.supportEmail };
+  return { notifyEmail: env.CONTACT_NOTIFY_EMAIL };
 }
 
 export function hasContactE2EEnv() {
-  return z.object({
-    DATABASE_URL: z.url(),
-    BETTER_AUTH_SECRET: z.string().min(32),
-    BETTER_AUTH_URL: z.url(),
-    EMAIL_FROM: z.string().min(3),
-  }).safeParse(process.env).success;
+  return z
+    .object({
+      DATABASE_URL: z.url(),
+      BETTER_AUTH_SECRET: z.string().min(32),
+      BETTER_AUTH_URL: z.url(),
+      EMAIL_FROM: z.string().min(3),
+    })
+    .safeParse(process.env).success;
 }

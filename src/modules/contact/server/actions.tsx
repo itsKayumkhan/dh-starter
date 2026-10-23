@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { site } from "@/config/site";
+import { getSiteSettings } from "@/lib/content/settings";
 import { writeAudit } from "@/lib/audit";
 import { sendEmail } from "@/lib/email";
 import { getServerEnv } from "@/lib/env/server";
@@ -39,11 +39,16 @@ const submitAction = safeAction(
       input.website ||
       !isFormTokenReady(input.formToken, getServerEnv().BETTER_AUTH_SECRET)
     )
-      throw new AppError("CONTACT_FORM_INVALID", "Please refresh the form and try again.");
+      throw new AppError(
+        "CONTACT_FORM_INVALID",
+        "Please refresh the form and try again.",
+      );
 
-    const userAgent = z.string().max(500).nullable().safeParse(
-      (await headers()).get("user-agent"),
-    );
+    const userAgent = z
+      .string()
+      .max(500)
+      .nullable()
+      .safeParse((await headers()).get("user-agent"));
     const inquiry = await createInquiry({
       name: input.name,
       email: input.email,
@@ -56,7 +61,8 @@ const submitAction = safeAction(
     });
 
     try {
-      const notifyEmail = getContactEnv().notifyEmail;
+      const site = await getSiteSettings();
+      const notifyEmail = getContactEnv().notifyEmail ?? site.supportEmail;
       const results = await Promise.allSettled([
         sendEmail({
           to: notifyEmail,
@@ -73,9 +79,14 @@ const submitAction = safeAction(
       const failed = results.some((result) => result.status === "rejected");
       await setInquiryEmailStatus(inquiry.id, failed ? "failed" : "sent");
       if (failed)
-        logger.error("Inquiry email delivery failed", { inquiryId: inquiry.id });
+        logger.error("Inquiry email delivery failed", {
+          inquiryId: inquiry.id,
+        });
     } catch (error) {
-      logger.error("Inquiry email delivery failed", { inquiryId: inquiry.id, error });
+      logger.error("Inquiry email delivery failed", {
+        inquiryId: inquiry.id,
+        error,
+      });
       await setInquiryEmailStatus(inquiry.id, "failed");
     }
     revalidatePath(CONTACT_ROUTES.inquiries);
@@ -122,8 +133,9 @@ const resendAction = safeAction(
     const claim = await claimFailedNotification(id);
     if (claim.count !== 1) throw new ConflictError();
     try {
+      const site = await getSiteSettings();
       await sendEmail({
-        to: getContactEnv().notifyEmail,
+        to: getContactEnv().notifyEmail ?? site.supportEmail,
         subject: `New inquiry for ${site.name}`,
         react: <InquiryNotification inquiry={inquiry} />,
         replyTo: inquiry.email,
@@ -131,8 +143,14 @@ const resendAction = safeAction(
       await setInquiryEmailStatus(id, "sent");
     } catch (error) {
       await setInquiryEmailStatus(id, "failed");
-      logger.error("Inquiry notification resend failed", { inquiryId: id, error });
-      throw new AppError("CONTACT_RESEND_FAILED", "The notification could not be sent.");
+      logger.error("Inquiry notification resend failed", {
+        inquiryId: id,
+        error,
+      });
+      throw new AppError(
+        "CONTACT_RESEND_FAILED",
+        "The notification could not be sent.",
+      );
     } finally {
       revalidatePath(CONTACT_ROUTES.inquiry(id));
       revalidatePath(CONTACT_ROUTES.inquiries);

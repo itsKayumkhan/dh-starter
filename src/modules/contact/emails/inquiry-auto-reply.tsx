@@ -1,5 +1,6 @@
 import { Text } from "react-email";
 import { site } from "@/config/site";
+import type { SiteSettings } from "@/config/settings";
 import {
   EmailLayout,
   PrimaryButton,
@@ -10,9 +11,18 @@ import {
   type InquiryEmailData,
 } from "@/modules/contact/emails/inquiry-notification";
 
-export function InquiryAutoReply({ inquiry }: { inquiry: InquiryEmailData }) {
+export function InquiryAutoReply({
+  inquiry,
+  settings = site,
+}: {
+  inquiry: InquiryEmailData;
+  settings?: SiteSettings;
+}) {
   return (
-    <EmailLayout preview={`Thanks for contacting ${site.name}`}>
+    <EmailLayout
+      preview={`Thanks for contacting ${settings.name}`}
+      settings={settings}
+    >
       <Text style={{ fontSize: 20, fontWeight: 700 }}>
         Thanks for getting in touch
       </Text>
@@ -24,7 +34,8 @@ export function InquiryAutoReply({ inquiry }: { inquiry: InquiryEmailData }) {
       </Text>
       <Text>Reference: {inquiry.id}</Text>
       <PrimaryButton
-        href={new URL(CONTACT_ROUTES.contact, site.url).toString()}
+        href={new URL(CONTACT_ROUTES.contact, settings.url).toString()}
+        settings={settings}
       >
         Visit contact page
       </PrimaryButton>

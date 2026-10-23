@@ -6,7 +6,7 @@ Public contact form with an inquiry inbox for staff and admin users.
 
 1. Add `contactModule` to `src/config/modules.ts` using the module registry markers.
 2. Generate the Prisma client and apply the contact schema through the normal migration workflow.
-3. Set `CONTACT_NOTIFY_EMAIL` to the business inbox. If omitted, the module uses `site.supportEmail` from `src/config/site.ts`.
+3. Set `CONTACT_NOTIFY_EMAIL` to the business inbox. If omitted, the module uses the current CMS support email, falling back to `src/config/site.ts`.
 4. Configure the core email provider and `EMAIL_FROM` for delivery.
 
 `module.json` lists all removable module paths, `prisma/schema/contact.prisma`, no extra packages, one env key, and no module dependencies.
