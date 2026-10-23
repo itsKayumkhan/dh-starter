@@ -3,6 +3,8 @@
 Reusable Next.js full-stack starter. Every client or internal project starts as a copy of this repo.
 Goal of every change: reuse what exists, keep modules removable, ship production-ready code.
 
+Purpose: a tested, working base (auth, roles, email, uploads, payments, CMS, admin, security, tests) so the team does not rebuild and retest the same code in every project, and Claude spends its time on the project's own work. It is not a component library and not a design system. Keep starter code lean: no abstractions or extra config layers that exist only to avoid editing starter files.
+
 The starter is only a base. Inside a project, any starter file (core, shared components, modules, scripts, config) may be edited, extended or replaced to fit that project. The rules below keep the code correct and secure; they never forbid changing starter code.
 
 Read before non-trivial work: `docs/ARCHITECTURE.md` (layout, module contract, security defaults), `docs/MODULES.md`, `docs/PERFORMANCE.md`.
