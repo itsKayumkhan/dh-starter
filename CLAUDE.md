@@ -97,7 +97,7 @@ Technical rules that are not about design (they apply in every project):
 - Prisma 7, multi-file schema in `prisma/schema/`. The schema files plus `prisma/migrations/` are the canonical schema backup.
 - Every DDL change = a migration (`npm run db:migrate -- --name <what>`) committed together with the schema file. Never edit the database by hand.
 - Never run `prisma migrate reset` or drop data without asking the user first.
-- Local DB: `npm run db:dev` (background, no Docker), `npm run db:stop`. Seed logins are in `docs/ARCHITECTURE.md`.
+- Local DB: `npm run db:dev` in its own terminal (real Postgres 17, no Docker, data in `.data/`, Ctrl+C to stop). Seed logins are in `docs/ARCHITECTURE.md`.
 
 ## 10. Checks before you say "done"
 

@@ -2,6 +2,11 @@
 
 All notable changes to dh-starter. Versions follow semver (see `docs/STARTER_SYNC.md`).
 
+## 0.2.1 (2026-10-23)
+
+- Local database: `npm run db:dev` now runs a real Postgres 17 through `embedded-postgres` (no Docker or system install) instead of `prisma dev`, which dropped connections under load. Data lives in `.data/postgres-<port>/`; the port, user and database come from `DATABASE_URL`. `SHADOW_DATABASE_URL` and `db:stop` are removed. Update `.env`: `DATABASE_URL="postgres://postgres:postgres@localhost:5433/dh_starter?sslmode=disable"`, then `npm run db:dev`, `npm run db:migrate`, `npm run db:seed`.
+- Playwright: global setup resets local sign-in rate limit counters before a run; runs with one worker because specs share the seed accounts.
+
 ## 0.2.0 (2026-10-23)
 
 - Core content layer: `prisma/schema/content.prisma` (SiteSetting, ContentBlock), `src/config/settings.ts`, `src/config/content.ts` registry, cached `getSiteSettings()` and `getContent()` with defaults when the database is empty or unavailable. Brand and contact data in UI, metadata and emails now come from site settings. Migration: `add_content`.

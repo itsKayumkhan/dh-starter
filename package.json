@@ -13,7 +13,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "db:dev": "prisma dev -n dh-starter --detach",
+    "db:dev": "tsx scripts/db-dev.mts",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "prisma db seed",
@@ -23,8 +23,7 @@
     "module:remove": "tsx scripts/module-remove.mts",
     "email:dev": "email dev --dir src/lib/email/templates",
     "prepare": "husky",
-    "postinstall": "prisma generate",
-    "db:stop": "prisma dev stop dh-starter"
+    "postinstall": "prisma generate"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,cjs,json,md,css,yml,yaml}": "prettier --write",
@@ -81,6 +80,7 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.1.2",
     "dotenv": "^18.0.8",
+    "embedded-postgres": "17.10.0-beta.17",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "husky": "^9.1.7",

@@ -57,3 +57,6 @@ next-env.d.ts
 
 # temporary handoff notes from parallel agent waves (never committed)
 /docs/agents/
+
+# local dev database data (npm run db:dev)
+/.data/

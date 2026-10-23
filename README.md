@@ -5,7 +5,7 @@ A reusable Next.js 16 full stack starter for Digital Heroes projects. Core provi
 ## Quick start
 
 1. Run `npm install` and copy `.env.example` to `.env`.
-2. Run `npm run db:dev`. It starts a local Postgres in the background (no Docker) at the `DATABASE_URL` already in `.env.example`. After a reboot run it again; stop it with `npm run db:stop`.
+2. Run `npm run db:dev` in its own terminal. It runs a real local Postgres 17 (npm package, no Docker or system install) for the `DATABASE_URL` in `.env`, keeps data in `.data/`, and stops with Ctrl+C. Each project copy can use its own port by changing the port in `DATABASE_URL`.
 3. Run `npm run db:migrate`, then `npm run db:seed`.
 4. Run `npm run dev` and open `http://localhost:3000`.
 
@@ -23,14 +23,14 @@ The seed is idempotent and uses Better Auth to create password accounts. It then
 
 ## Scripts
 
-| Script                                                                               | Purpose                      |
-| ------------------------------------------------------------------------------------ | ---------------------------- |
-| `dev`, `build`, `start`                                                              | Next.js lifecycle            |
-| `lint`, `typecheck`, `format`                                                        | Source checks and formatting |
-| `test`, `test:e2e`                                                                   | Unit and browser tests       |
-| `db:dev`, `db:stop`, `db:migrate`, `db:generate`, `db:seed`, `db:studio`, `db:reset` | Prisma workflow              |
-| `module:list`, `module:remove`                                                       | Inspect and remove modules   |
-| `email:dev`                                                                          | React Email template preview |
+| Script                                                                    | Purpose                      |
+| ------------------------------------------------------------------------- | ---------------------------- |
+| `dev`, `build`, `start`                                                   | Next.js lifecycle            |
+| `lint`, `typecheck`, `format`                                             | Source checks and formatting |
+| `test`, `test:e2e`                                                        | Unit and browser tests       |
+| `db:dev`, `db:migrate`, `db:generate`, `db:seed`, `db:studio`, `db:reset` | Prisma workflow              |
+| `module:list`, `module:remove`                                            | Inspect and remove modules   |
+| `email:dev`                                                               | React Email template preview |
 
 ## Starting a client project
 

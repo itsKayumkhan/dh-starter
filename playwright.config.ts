@@ -4,6 +4,9 @@ import { getTestBaseURL } from "@/lib/env/test";
 const baseURL = getTestBaseURL();
 export default defineConfig({
   testDir: "tests/e2e",
+  globalSetup: "./tests/e2e/global-setup.ts",
+  // Specs share the seed accounts; parallel sign-ins trip the Better Auth sign-in rate limit.
+  workers: 1,
   // next dev compiles each route on first visit, so allow more than the 5s default.
   expect: { timeout: 15_000 },
   use: { baseURL },
