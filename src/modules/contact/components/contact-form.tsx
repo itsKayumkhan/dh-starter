@@ -77,6 +77,9 @@ export function ContactForm({ formToken }: { formToken: string }) {
         <FieldError errors={[fieldErrors.message]} />
       </Field>
       {formError ? <p role="alert">{formError}</p> : null}
+      {result?.ok ? (
+        <p role="status">Thanks, your inquiry has been received.</p>
+      ) : null}
       <Button type="submit" disabled={isPending} aria-live="polite">
         {isPending ? "Sending..." : result?.ok ? "Sent" : "Send message"}
       </Button>
