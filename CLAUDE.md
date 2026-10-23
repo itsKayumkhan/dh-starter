@@ -41,16 +41,21 @@ Next.js 16 differs from older versions: check `node_modules/next/dist/docs/` bef
 - No circular imports, including type-only ones (`npm run check:circular`). Put shared types in their own file.
 - A new module is created with `/new-module`.
 
-## 4. Components and UI
+## 4. UI and UX: owned by each project, not by the starter
 
-- Reuse before creating: shadcn primitives, then `src/components/shared/`, then the registries in `components.json` (shadcn, Kokonut, Magic UI, React Bits, Bklit). Hand-write only when nothing fits, then restyle to theme tokens.
-- Never duplicate buttons, inputs, dialogs, tables or forms. Extend with props or `cva` variants.
-- Components get typed props, no hardcoded project text, colors, URLs or data, and handle loading, error, empty and disabled states.
-- Theme tokens only (`bg-primary`, `text-muted-foreground`); no raw hex in components. Icons from `lucide-react`, toasts via `sonner`.
-- Forms: react-hook-form + `zodResolver` + shadcn `Field`; disable submit while pending; show field and form errors from the `ActionResult`.
-- Dates and numbers through `src/lib/format.ts` only (deterministic, avoids hydration mismatches).
-- Motion: an existing or designed animation always wins. Add motion only where none exists, subtle, respecting `prefers-reduced-motion`.
-- Responsive from 360px, accessible labels and focus states.
+This repo gives **no UI or UX direction**. Every project has its own unique style, and any design rule from the starter would lower its quality.
+
+- The starter's current look (shadcn neutral theme, Geist font, sample marketing pages, dashboard layout) is a **throwaway placeholder**. It is not a reference, not a style guide and not a default to stay close to.
+- Fonts, colors, spacing, radius, layout, page structure, component and UI libraries, icons, imagery, motion and UX patterns are decided only by the project's own design source (Figma, the client's brand, a reference site, the designer, or a design skill). Follow that source fully. Never push back on a design because it differs from the starter, never keep starter visuals "for consistency", and never ask whether to keep the starter's look.
+- The project may restyle, replace or delete any starter UI, including the marketing pages, the dashboard shell and the admin screens, as long as the logic underneath (guards, actions, data access) keeps working.
+- **Starter code stays design-neutral** so it never fights a project's design: core and modules contain no fixed fonts, colors, radius or brand imagery, visual values come from the theme in `src/app/globals.css` and the fonts set in the root layout, and no starter test asserts a specific font, color or layout.
+
+Technical rules that are not about design (they apply in every project):
+
+- Reuse starter logic before writing new logic: `safeAction`, guards, `DataTable` and `parseListParams` for server pagination, `sendEmail`, content and settings helpers.
+- Forms validate on the server through `safeAction` and show the field and form errors from the `ActionResult` (how they look is the project's choice).
+- Dates and numbers go through `src/lib/format.ts` (deterministic, prevents hydration mismatches).
+- No hardcoded project text, URLs or data inside reusable components: pass them as props or read them from settings and content.
 
 ## 5. Next.js rules
 
@@ -85,7 +90,7 @@ Next.js 16 differs from older versions: check `node_modules/next/dist/docs/` bef
 - **Settings**: read brand, contact, social and SEO defaults with `getSiteSettings()` (DB value over `src/config/site.ts` default). Do not import `site.ts` directly in UI, metadata or emails.
 - **Content**: page copy comes from `getContent("<page>.<section>")`. Every new marketing section adds a block to `src/config/content.ts` with a Zod schema, a sensible default (the current design copy) and editor fields, so the page renders with an empty database and the client can edit it in admin.
 - Content reads are cached and the CMS save action revalidates the matching cache tag; do not query content tables directly from pages.
-- **Every new admin page**: permission check (`requirePermission`), server-side pagination for lists (`parseListParams` + `DataTable`), an audit log entry for every mutation (`writeAudit`), loading, empty and error states, and a usable layout at 360px.
+- **Every new admin page**: permission check (`requirePermission`), server-side pagination for lists (`parseListParams` + `DataTable`), an audit log entry for every mutation (`writeAudit`).
 
 ## 9. Database
 
