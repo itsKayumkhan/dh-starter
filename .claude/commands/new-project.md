@@ -12,4 +12,6 @@ Set up this copy of dh-starter as a new project: $ARGUMENTS
 5. `.env`: copy `.env.example`, fill local values; list which real keys the user must provide (email provider, Stripe, Cloudinary, Google OAuth) for the modules kept.
 6. Rename `package.json` `name`, update `README.md` title and intro for the project.
 7. Review `docs/PRODUCTION_CHECKLIST.md`: remove lines for removed modules, keep the rest for go-live.
-8. Run `/verify` and report. Do not push.
+8. Record the starter origin: rewrite `STARTER_VERSION` as `<current version> (<starter commit sha>)` using the commit this copy was made from (`git log -1 --format=%h` before any project commit). Keep `CHANGELOG.md` and `docs/STARTER_SYNC.md` so the project can pull later starter updates.
+9. Keep the `cms` module if the project has an admin side (CLAUDE.md section 8); set the real brand defaults in `src/config/site.ts` and the page copy defaults in `src/config/content.ts`.
+10. Run `/verify` and report. Do not push.

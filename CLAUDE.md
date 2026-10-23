@@ -11,8 +11,8 @@ Next.js 16 differs from older versions: check `node_modules/next/dist/docs/` bef
 1. **Inspect**: read the files involved and search for an existing component, hook, helper, schema or constant before creating one.
 2. **Plan**: name the files you will touch. If the task needs a new dependency, a new pattern, a schema change or a cross-module import, say so and ask first.
 3. **Implement** the smallest change that solves the task. No unrelated refactors, no renames or moves without a reason.
-4. **Validate** with the checks in section 9. Never claim a check passed unless you ran it.
-5. **Report** (section 11).
+4. **Validate** with the checks in section 10. Never claim a check passed unless you ran it.
+5. **Report** (section 12).
 
 ## 2. Where code goes
 
@@ -22,7 +22,8 @@ Next.js 16 differs from older versions: check `node_modules/next/dist/docs/` bef
 | Shared primitives (shadcn)                                                                                   | `src/components/ui/`                                                                                             |
 | Shared app components (DataTable, PageHeader, EmptyState, ConfirmDialog, StatCard)                           | `src/components/shared/`                                                                                         |
 | Core helpers: env, db, auth, errors, safe actions, rate limit, audit, logger, email, seo, format, pagination | `src/lib/**`                                                                                                     |
-| Brand and project config                                                                                     | `src/config/site.ts` (one place for name, URL, colors, contact)                                                  |
+| Brand and project defaults                                                                                   | `src/config/site.ts` (defaults only; read them through `getSiteSettings()`)                                      |
+| Editable content block registry                                                                              | `src/config/content.ts` (key, Zod schema, default, editor fields)                                                |
 | Installed module registry                                                                                    | `src/config/modules.ts` (the only core file that may import a module)                                            |
 | Removable feature                                                                                            | `src/modules/<id>/` with `module.json`, `module.ts`, `env.ts`, `server/`, `components/`, `schemas/`, `README.md` |
 | Module tables                                                                                                | `prisma/schema/<id>.prisma` (one file per module)                                                                |
@@ -58,6 +59,8 @@ Next.js 16 differs from older versions: check `node_modules/next/dist/docs/` bef
 - Mutations: Server Actions through `safeAction()` returning `ActionResult<T>`, then `revalidatePath` or `revalidateTag`. Route handlers only for webhooks, third-party callbacks and public APIs.
 - Heavy client code (charts, editors, dialogs opened later) loads with `next/dynamic`. Dashboard-only providers stay in the dashboard layout, not the root layout.
 - Never hardcode a route: use `ROUTES` (`src/lib/constants/routes.ts`) or the module's `routes.ts`. Repeated user-facing strings go in `src/lib/constants/messages.ts`.
+- **Public pages**: every public page sets metadata with `buildMetadata()` and is listed in `src/app/sitemap.ts` (unless it is intentionally `noIndex`).
+- **Bundle budget** (gzipped JS per page, method in `docs/PERFORMANCE.md`): marketing and auth pages under 200 KB, dashboard and admin pages under 400 KB. Check it before adding a client-side package or a large client component, and record new numbers in `docs/PERFORMANCE.md`.
 
 ## 6. TypeScript and validation
 
@@ -72,16 +75,24 @@ Next.js 16 differs from older versions: check `node_modules/next/dist/docs/` bef
 - Roles and permissions only through `src/lib/auth/permissions.ts` (`can(user, "users:read")`). No scattered `role === "admin"` checks.
 - Rate limit public and sensitive actions with the core limiter. Uploads are always signed and checked server-side. Webhooks verify the signature and claim the event id before processing.
 - Secrets stay server-side; only `NEXT_PUBLIC_*` reaches the client. Never log secrets, tokens or personal data (use `@/lib/logger`, never `console.log`).
-- Emails: branded React Email templates using `src/lib/email/templates/components/layout.tsx` and `site.ts`; send only through `sendEmail()`. Never plain text only.
+- Emails: branded React Email templates using `src/lib/email/templates/components/layout.tsx` and the site settings; send only through `sendEmail()`. Never plain text only.
 
-## 8. Database
+## 8. Admin, CMS and content
+
+- **Every project with an admin side keeps the `cms` module.** Anything the client may want to change (text, images, links, contact details, social, SEO defaults) comes from the CMS, never hardcoded in a component.
+- **Settings**: read brand, contact, social and SEO defaults with `getSiteSettings()` (DB value over `src/config/site.ts` default). Do not import `site.ts` directly in UI, metadata or emails.
+- **Content**: page copy comes from `getContent("<page>.<section>")`. Every new marketing section adds a block to `src/config/content.ts` with a Zod schema, a sensible default (the current design copy) and editor fields, so the page renders with an empty database and the client can edit it in admin.
+- Content reads are cached and the CMS save action revalidates the matching cache tag; do not query content tables directly from pages.
+- **Every new admin page**: permission check (`requirePermission`), server-side pagination for lists (`parseListParams` + `DataTable`), an audit log entry for every mutation (`writeAudit`), loading, empty and error states, and a usable layout at 360px.
+
+## 9. Database
 
 - Prisma 7, multi-file schema in `prisma/schema/`. The schema files plus `prisma/migrations/` are the canonical schema backup.
 - Every DDL change = a migration (`npm run db:migrate -- --name <what>`) committed together with the schema file. Never edit the database by hand.
 - Never run `prisma migrate reset` or drop data without asking the user first.
 - Local DB: `npm run db:dev` (background, no Docker), `npm run db:stop`. Seed logins are in `docs/ARCHITECTURE.md`.
 
-## 9. Checks before you say "done"
+## 10. Checks before you say "done"
 
 Run what applies and report the real result:
 
@@ -94,15 +105,16 @@ Run what applies and report the real result:
 
 `/verify` runs all of them. Add tests for new reusable logic and components (Vitest + Testing Library next to the file; Playwright in `tests/e2e/`). A failing check is reported with its output, never hidden.
 
-## 10. Dependencies and production
+## 11. Dependencies, production and starter sync
 
 - Before adding a package: check whether existing code or an installed package already does it, then explain why it is needed and ask. Feature-only packages go in that module's `module.json` `packages`.
 - Anything that must change before go-live (test keys, placeholder copy, demo data, seed logins, dev fallbacks) gets a line in `docs/PRODUCTION_CHECKLIST.md` in the same commit: `- [ ] **<file:line>** - <what to change> + <why>`.
 - Seed or test logins use the project's own domain (`admin@<domain>`) with a memorable password built from the brand name, dev and staging only.
 - Never use em dash or en dash characters (the long dashes) anywhere: code, comments, UI copy, docs. Use a comma, colon, parentheses or a plain hyphen.
 - Commits: conventional messages (`feat(billing): ...`). Do not push unless the user asks.
+- **Starter sync**: every project records the starter version it was created from in `STARTER_VERSION`. When you fix a bug or improve anything generic (core, shared components, a module) inside a client project, flag it in your report as "port to starter" and follow `docs/STARTER_SYNC.md`, so the next project gets the fix. Project-specific code never goes back to the starter.
 
-## 11. Completion report
+## 12. Completion report
 
 End every task with:
 
