@@ -9,7 +9,7 @@ A reusable Next.js 16 full stack starter for Digital Heroes projects. Core provi
 3. Run `npm run db:migrate`, then `npm run db:seed`.
 4. Run `npm run dev` and open `http://localhost:3000`.
 
-Docker alternative: run `docker compose up -d postgres` and set `DATABASE_URL=postgres://postgres:postgres@localhost:5432/dhstarter` before migrating. Set a unique `BETTER_AUTH_SECRET` and a real email provider before production.
+Set a unique `BETTER_AUTH_SECRET` and a real email provider before production.
 
 Development seed logins:
 
