@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
 import { assertPermission, assertUser } from "@/lib/auth/session";
 import { AppError } from "@/lib/errors";
@@ -37,6 +38,8 @@ export async function POST(request: Request) {
     });
     return Response.json(signed, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
+    // Let Next control-flow errors (redirect, 403, request-time bailout) pass through.
+    unstable_rethrow(error);
     if (error instanceof SyntaxError)
       return Response.json({ error: "Invalid JSON body." }, { status: 400 });
     if (error instanceof AppError)

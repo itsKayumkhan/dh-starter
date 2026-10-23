@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { NextResponse } from "next/server";
 import { assertUser } from "@/lib/auth/session";
 import { UnauthorizedError } from "@/lib/errors";
@@ -13,6 +14,8 @@ export async function GET() {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {
+    // Let Next control-flow errors (redirect, 403, request-time bailout) pass through.
+    unstable_rethrow(error);
     if (error instanceof UnauthorizedError) {
       return NextResponse.json(
         { error: "Unauthorized" },

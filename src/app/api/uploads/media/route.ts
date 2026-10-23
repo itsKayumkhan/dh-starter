@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { assertPermission } from "@/lib/auth/session";
 import { AppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
@@ -22,7 +23,10 @@ export async function GET(request: Request) {
       take: parsed.take,
       q: parsed.q,
       folder,
-      sort: { field: "createdAt", dir: parsed.sort.dir === "asc" ? "asc" : "desc" },
+      sort: {
+        field: "createdAt",
+        dir: parsed.sort.dir === "asc" ? "asc" : "desc",
+      },
     });
     return Response.json(
       {
@@ -33,6 +37,8 @@ export async function GET(request: Request) {
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
+    // Let Next control-flow errors (redirect, 403, request-time bailout) pass through.
+    unstable_rethrow(error);
     if (error instanceof AppError)
       return Response.json(
         { error: error.message },
