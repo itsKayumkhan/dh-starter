@@ -16,8 +16,6 @@
 
 ## Dashboard shell (core)
 
-- [ ] **src/app/(dashboard)/dashboard/page.tsx:16** - Replace the four demo StatCard values with authorized project metrics + placeholder figures would mislead production users.
-- [ ] **src/components/layout/demo-activity-chart.tsx:7** - Replace the demo activity series with authorized project metrics + sample trend is not live activity.
 - [ ] **tests/e2e/shell.spec.ts:14** - Replace fixed seed admin credentials in production-facing test pipelines + the demo account must not exist in production.
 
 ## Module: admin

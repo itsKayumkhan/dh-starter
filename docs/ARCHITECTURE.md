@@ -98,12 +98,8 @@ src/
     "src/app/(dashboard)/dashboard/billing"
   ],
   "prismaFiles": ["prisma/schema/billing.prisma"],
-  "packages": ["stripe", "@stripe/stripe-js", "@stripe/react-stripe-js"],
-  "envKeys": [
-    "STRIPE_SECRET_KEY",
-    "STRIPE_WEBHOOK_SECRET",
-    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
-  ],
+  "packages": ["stripe"],
+  "envKeys": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"],
   "dependsOn": []
 }
 ```

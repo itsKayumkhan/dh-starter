@@ -10,18 +10,8 @@
     "src/app/(marketing)/pricing",
     "tests/e2e/billing.spec.ts"
   ],
-  "prismaFiles": [
-    "prisma/schema/billing.prisma"
-  ],
-  "packages": [
-    "stripe",
-    "@stripe/stripe-js",
-    "@stripe/react-stripe-js"
-  ],
-  "envKeys": [
-    "STRIPE_SECRET_KEY",
-    "STRIPE_WEBHOOK_SECRET",
-    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
-  ],
+  "prismaFiles": ["prisma/schema/billing.prisma"],
+  "packages": ["stripe"],
+  "envKeys": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"],
   "dependsOn": []
 }

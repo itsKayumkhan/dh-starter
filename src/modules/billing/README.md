@@ -4,7 +4,7 @@ This module provides hosted Stripe Checkout, subscriptions, one-time payments, t
 
 ## Setup
 
-1. Set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` in the server environment. The publishable key is reserved for future client-side Stripe features; hosted Checkout does not read it in the browser.
+1. Set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in the server environment. Checkout and the customer portal are Stripe hosted, so no publishable key is used.
 2. Replace the three `price_REPLACE_*` IDs in `plans.ts` with Stripe Price IDs. Match the display amounts and intervals to the real Stripe Prices.
 3. Configure the Stripe customer portal and register the webhook URL at `/api/billing/webhook`. Subscribe to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`, `payment_intent.succeeded`, `payment_intent.payment_failed` and `charge.refunded`.
 4. Generate a Prisma migration from `prisma/schema/billing.prisma`, apply it, and run Prisma Client generation before using billing in a deployed environment.

@@ -3,7 +3,6 @@ import { z } from "zod";
 const billingEnvSchema = z.object({
   STRIPE_SECRET_KEY: z.string().min(1).startsWith("sk_"),
   STRIPE_WEBHOOK_SECRET: z.string().min(1).startsWith("whsec_"),
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1).startsWith("pk_"),
 });
 
 export function getBillingEnv() {
