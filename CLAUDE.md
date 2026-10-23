@@ -60,7 +60,7 @@ Technical rules that are not about design (they apply in every project):
 ## 5. Next.js rules
 
 - Server Components by default. `'use client'` only on the smallest leaf that needs state, effects, events or browser APIs. Never pass functions across the server/client boundary.
-- `cacheComponents` is on: anything reading the session, `headers()`, `cookies()`, `searchParams` or `params` goes in an inner async component wrapped in `<Suspense>` with a skeleton. Do not add `runtime` or `dynamic` route segment configs. See `docs/agents/polish-done.md`.
+- `cacheComponents` is on: keep the static page structure outside `<Suspense>`, and read the session, `headers()`, `cookies()`, `searchParams`, `params` and uncached queries in an inner async component wrapped in `<Suspense>` with a fallback. Pass `params` / `searchParams` promises down without awaiting them in the page component. Do not add `runtime` or `dynamic` route segment configs.
 - Page guards: `requireUser`, `requireRole`, `requirePermission` (redirect or render the 403 page). Action and route-handler guards: `assertUser`, `assertPermission`. `src/proxy.ts` is only an optimistic redirect, never the real check.
 - If you catch errors around guards or data calls, call `unstable_rethrow(error)` first so redirects and 403s still work.
 - Mutations: Server Actions through `safeAction()` returning `ActionResult<T>`, then `revalidatePath` or `revalidateTag`. Route handlers only for webhooks, third-party callbacks and public APIs.
@@ -117,6 +117,7 @@ Run what applies and report the real result:
 - Before adding a package: check whether existing code or an installed package already does it, then explain why it is needed and ask. Feature-only packages go in that module's `module.json` `packages`.
 - Anything that must change before go-live (test keys, placeholder copy, demo data, seed logins, dev fallbacks) gets a line in `docs/PRODUCTION_CHECKLIST.md` in the same commit: `- [ ] **<file:line>** - <what to change> + <why>`.
 - Seed or test logins use the project's own domain (`admin@<domain>`) with a memorable password built from the brand name, dev and staging only.
+- **No suggestions in the repo.** Docs, READMEs, comments and command files state what exists and the mandatory rules only: no recommendations, alternatives or other tools to consider, follow-up ideas or "nice to have" lists. Give advice in the chat; the session working on a project decides the rest.
 - Never use em dash or en dash characters (the long dashes) anywhere: code, comments, UI copy, docs. Use a comma, colon, parentheses or a plain hyphen.
 - Commits: conventional messages (`feat(billing): ...`). Do not push unless the user asks.
 - **Starter sync**: every project records the starter version it was created from in `STARTER_VERSION`. When you fix a bug or improve anything generic (core, shared components, a module) inside a client project, flag it in your report as "port to starter" and follow `docs/STARTER_SYNC.md`, so the next project gets the fix. Project-specific code never goes back to the starter.
