@@ -5,6 +5,8 @@ import { getServerEnv } from "@/lib/env/server";
 import { providers } from "@/lib/email/providers";
 import { AppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
+import { getSiteSettings } from "@/lib/content/settings";
+import { withEmailBrand } from "@/lib/email/brand-context";
 
 export async function sendEmail(input: {
   to: string;
@@ -15,8 +17,11 @@ export async function sendEmail(input: {
 }): Promise<{ ok: true; id?: string }> {
   try {
     const env = getServerEnv();
-    const html = await render(input.react);
-    const text = input.text ?? (await render(input.react, { plainText: true }));
+    const settings = await getSiteSettings();
+    const { html, text } = await withEmailBrand(settings, async () => ({
+      html: await render(input.react),
+      text: input.text ?? (await render(input.react, { plainText: true })),
+    }));
     const result = await providers[env.EMAIL_PROVIDER]({
       to: input.to,
       from: env.EMAIL_FROM,

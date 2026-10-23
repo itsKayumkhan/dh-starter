@@ -10,7 +10,7 @@ import {
   Section,
   Text,
 } from "react-email";
-import { site } from "@/config/site";
+import { emailBrand } from "@/lib/email/brand-context";
 
 export function EmailLayout({
   preview,
@@ -19,6 +19,7 @@ export function EmailLayout({
   preview: string;
   children: ReactNode;
 }) {
+  const site = emailBrand();
   return (
     <Html>
       <Head />
@@ -75,6 +76,7 @@ export function PrimaryButton({
   href: string;
   children: ReactNode;
 }) {
+  const site = emailBrand();
   return (
     <Button
       href={href}

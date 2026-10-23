@@ -14,6 +14,8 @@ Next.js 16 differs from older versions: check `node_modules/next/dist/docs/` bef
 4. **Validate** with the checks in section 10. Never claim a check passed unless you ran it.
 5. **Report** (section 12).
 
+**Client projects:** if `docs/project/` exists, read `project-context.md` and `pending-items.md` before starting; they are the client's confirmed requirements and decisions. Client chat (the base chat file at the project root, or pasted Fiverr / WhatsApp messages, or "client ne bola ...") always goes through the `client-context` skill (`/client-context`), never an informal summary. Client-facing replies, emails and messages are written with the `msg` skill (`/msg`). A repo hook reminds Claude of both automatically.
+
 ## 2. Where code goes
 
 | What                                                                                                         | Where                                                                                                            |

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createElement } from "react";
 import { site } from "@/config/site";
+import type { SiteSettings } from "@/config/settings";
 import { ROUTES } from "@/lib/constants/routes";
 
 export function buildMetadata(
@@ -11,39 +12,41 @@ export function buildMetadata(
     image?: string;
     noIndex?: boolean;
   } = {},
+  settings: SiteSettings = site,
 ): Metadata {
-  const url = new URL(input.path ?? ROUTES.home, site.url);
+  const url = new URL(input.path ?? ROUTES.home, settings.url);
+  const title = input.title ? settings.seo.titleTemplate.replace("%s", input.title) : settings.name;
   return {
-    title: input.title ? `${input.title} | ${site.name}` : site.name,
-    description: input.description ?? site.description,
-    metadataBase: new URL(site.url),
+    title,
+    description: input.description ?? settings.seo.description,
+    metadataBase: new URL(settings.url),
     alternates: { canonical: url },
     openGraph: {
-      title: input.title ?? site.name,
-      description: input.description ?? site.description,
+      title: input.title ?? settings.name,
+      description: input.description ?? settings.seo.description,
       url,
       images: input.image ? [input.image] : undefined,
     },
     robots: input.noIndex ? { index: false, follow: false } : undefined,
   };
 }
-export function organizationJsonLd() {
+export function organizationJsonLd(settings: SiteSettings = site) {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: site.name,
-    url: site.url,
-    logo: new URL(site.logo, site.url).toString(),
-    email: site.supportEmail,
+    name: settings.name,
+    url: settings.url,
+    logo: new URL(settings.logo, settings.url).toString(),
+    email: settings.supportEmail,
   };
 }
-export function websiteJsonLd() {
+export function websiteJsonLd(settings: SiteSettings = site) {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: site.name,
-    url: site.url,
-    description: site.description,
+    name: settings.name,
+    url: settings.url,
+    description: settings.description,
   };
 }
 export function JsonLd({ data }: { data: Record<string, unknown> }) {

@@ -46,3 +46,7 @@ Core APIs and security rules are in `docs/ARCHITECTURE.md`. Protected actions an
   - `/verify` (or `/verify e2e`): runs every check and reports real results.
   - `/new-module <id> <purpose>`: scaffolds a removable module that follows the module contract.
   - `/new-project <name> <domain>`: turns a fresh copy of the starter into a client project (brand, modules, seed logins, env, checklist).
+- Team skills (in `.claude/skills/`):
+  - `/client-context`: turns the client chat (base chat file at the project root plus later Fiverr / WhatsApp pastes) into `docs/project/` (requirements, decisions, change log, pending items). Credentials go to `.env`, never to docs. Image-only PDF chats need `pip install pymupdf` once.
+  - `/msg`: client messages, replies and emails in the team writing style, copy-paste ready.
+- `.claude/hooks/client-context-check.mjs` (Node, no setup): suggests `/client-context` when a chat file changes or chat is pasted, and asks once to update `docs/project/` after code changes in a client project.

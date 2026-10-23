@@ -1,24 +1,24 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Mail, MapPin } from "lucide-react";
-import { site } from "@/config/site";
+import { getSiteSettings } from "@/lib/content/settings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { buildMetadata } from "@/lib/seo";
 import { ContactFormWithToken } from "@/modules/contact/components/contact-form-with-token";
 import { CONTACT_ROUTES } from "@/modules/contact/routes";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Contact",
-  description: `Contact ${site.name}. We would be glad to hear from you.`,
-  path: CONTACT_ROUTES.contact,
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return buildMetadata({ title: "Contact", description: `Contact ${settings.name}. We would be glad to hear from you.`, path: CONTACT_ROUTES.contact }, settings);
+}
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
   return (
     <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-20">
       <div className="mb-10 max-w-2xl space-y-3">
-        <p className="text-sm font-medium text-primary">{site.name}</p>
+        <p className="text-sm font-medium text-primary">{settings.name}</p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Contact us</h1>
         <p className="text-lg text-muted-foreground">
           Have a question or a project in mind? Send a message and we will get back to you.
@@ -33,13 +33,13 @@ export default function ContactPage() {
           <h2 className="text-xl font-semibold">Business details</h2>
           <div className="flex items-start gap-3">
             <Mail className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
-            <a className="break-all underline-offset-4 hover:underline focus-visible:outline-ring" href={`mailto:${site.supportEmail}`}>
-              {site.supportEmail}
+            <a className="break-all underline-offset-4 hover:underline focus-visible:outline-ring" href={`mailto:${settings.supportEmail}`}>
+              {settings.supportEmail}
             </a>
           </div>
           <div className="flex items-start gap-3">
             <MapPin className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
-            <p className="text-muted-foreground">{site.address}</p>
+            <p className="text-muted-foreground">{settings.address}</p>
           </div>
         </aside>
       </div>
