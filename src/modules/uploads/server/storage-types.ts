@@ -1,11 +1,7 @@
 import type { UploadFolder } from "@/modules/uploads/upload-rules";
 
 export type SignedUpload = {
-  cloudName: string;
-  apiKey: string;
   uploadUrl: string;
-  params: Record<string, string>;
-  signature: string;
   publicId: string;
   folder: UploadFolder;
   ticket: string;
@@ -24,6 +20,13 @@ export type VerifiedAsset = {
 
 export interface Storage {
   sign(input: { folder: UploadFolder; ownerId: string }): Promise<SignedUpload>;
+  upload(input: {
+    folder: UploadFolder;
+    ownerId: string;
+    publicId: string;
+    ticket: string;
+    bytes: Buffer;
+  }): Promise<VerifiedAsset>;
   verify(input: {
     folder: UploadFolder;
     ownerId: string;

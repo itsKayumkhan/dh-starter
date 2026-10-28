@@ -15,7 +15,8 @@ async function BlockContent({ params }: { params: Promise<{ key: string }> }) {
   const { key } = await params;
   if (!(key in contentRegistry)) notFound();
   const blockKey = key as ContentKey;
-  const { block, row, editorName } = await getBlockEditorData(blockKey);
+  const { block, row, editorName, editable, revision } =
+    await getBlockEditorData(blockKey);
   return (
     <main className="max-w-3xl space-y-6">
       <Link href={CMS_ROUTES.content} className="text-sm underline">
@@ -40,6 +41,8 @@ async function BlockContent({ params }: { params: Promise<{ key: string }> }) {
         initialValue={
           parseContent(blockKey, row?.value) as Record<string, unknown>
         }
+        initialRevision={revision}
+        editable={editable}
       />
     </main>
   );

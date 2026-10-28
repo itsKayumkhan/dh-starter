@@ -3,15 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { can } from "@/lib/auth/permissions";
-import { writeAudit } from "@/lib/audit";
-import { ForbiddenError, NotFoundError } from "@/lib/errors";
+import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import { safeAction } from "@/lib/safe-action";
 import { UPLOAD_ROUTES } from "@/modules/uploads/routes";
 import {
-  createMedia,
+  finishMediaDeletion,
   findMedia,
   findMediaByPublicId,
-  removeMedia,
+  requestMediaDeletion,
+  saveVerifiedMedia,
   toMediaDto,
 } from "@/modules/uploads/server/media";
 import { storage } from "@/modules/uploads/server/storage";
@@ -45,18 +45,13 @@ const save = safeAction(
     const existing = await findMediaByPublicId(asset.publicId);
     if (existing) {
       if (existing.ownerId !== user.id) throw new ForbiddenError();
+      if (existing.deletePendingAt) throw new ConflictError();
       return toMediaDto(existing);
     }
-    const media = await createMedia({
+    const media = await saveVerifiedMedia({
       ownerId: user.id,
       ...asset,
       alt: input.alt || null,
-    });
-    await writeAudit({
-      actorId: user.id,
-      action: "media.create",
-      target: { type: "Media", id: media.id },
-      meta: { folder: input.folder, publicId: asset.publicId },
       ip,
     });
     revalidatePath(UPLOAD_ROUTES.media);
@@ -77,25 +72,15 @@ const remove = safeAction(
   async ({ id }, { user, ip }) => {
     if (!user) throw new ForbiddenError();
     const media = await findMedia(id);
-    if (!media) throw new NotFoundError();
+    if (!media || media.deletePendingAt) throw new NotFoundError();
     if (media.folder === "avatars") {
       if (media.ownerId !== user.id && !can(user, "media:write"))
         throw new ForbiddenError();
     } else if (!can(user, "media:write")) {
       throw new ForbiddenError();
     }
-    await storage.destroy({
-      publicId: media.publicId,
-      resourceType: media.resourceType,
-    });
-    await removeMedia(media.id);
-    await writeAudit({
-      actorId: user.id,
-      action: "media.delete",
-      target: { type: "Media", id: media.id },
-      meta: { folder: media.folder, publicId: media.publicId },
-      ip,
-    });
+    await requestMediaDeletion(media, user.id, ip);
+    await finishMediaDeletion(media, user.id, ip);
     revalidatePath(UPLOAD_ROUTES.media);
     return { id: media.id };
   },

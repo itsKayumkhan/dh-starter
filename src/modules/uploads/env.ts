@@ -19,3 +19,7 @@ export function getUploadsEnv() {
     CLOUDINARY_FOLDER_PREFIX: process.env.CLOUDINARY_FOLDER_PREFIX,
   });
 }
+
+export function getUploadsCronSecret() {
+  return z.string().min(32).parse(process.env.UPLOADS_CRON_SECRET);
+}

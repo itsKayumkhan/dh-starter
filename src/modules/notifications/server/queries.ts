@@ -88,15 +88,14 @@ export async function listNotifications(
   return { items: rows.map(toDto), total };
 }
 
-export async function getRecipientBatch(input: {
+export async function getBroadcastRecipients(input: {
   role?: "user" | "staff" | "admin";
-  after?: string;
+  limit: number;
 }) {
   return db.user.findMany({
     where: { banned: false, ...(input.role ? { role: input.role } : {}) },
     orderBy: { id: "asc" },
-    take: 500,
-    ...(input.after ? { cursor: { id: input.after }, skip: 1 } : {}),
+    take: input.limit + 1,
     select: { id: true },
   });
 }
@@ -104,6 +103,6 @@ export async function getRecipientBatch(input: {
 export async function userExists(userId: string) {
   return db.user.findUnique({
     where: { id: userIdSchema.parse(userId) },
-    select: { id: true, banned: true },
+    select: { id: true, banned: true, role: true },
   });
 }

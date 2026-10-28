@@ -17,7 +17,7 @@ import {
 import { inquiryStatusSchema } from "@/modules/contact/schemas/inquiry";
 import {
   changeInquiryStatus,
-  resendInquiryNotification,
+  resendInquiryEmail,
 } from "@/modules/contact/server/actions";
 
 const statusFormSchema = z.object({ status: inquiryStatusSchema });
@@ -26,11 +26,13 @@ type Values = z.infer<typeof statusFormSchema>;
 export function InquiryActions({
   id,
   status,
-  emailStatus,
+  notificationEmailStatus,
+  autoReplyEmailStatus,
 }: {
   id: string;
   status: string;
-  emailStatus: string;
+  notificationEmailStatus: string;
+  autoReplyEmailStatus: string;
 }) {
   const [error, setError] = useState("");
   const [resending, setResending] = useState(false);
@@ -51,16 +53,18 @@ export function InquiryActions({
     toast.success("Inquiry status updated.");
   });
 
-  async function resend() {
+  async function resend(channel: "notification" | "autoReply") {
     setError("");
     setResending(true);
     try {
-      const result = await resendInquiryNotification({ id });
+      const result = await resendInquiryEmail({ id, channel });
       if (!result.ok) {
         setError(result.error);
         return;
       }
-      toast.success("Notification sent.");
+      toast.success(
+        channel === "notification" ? "Team email sent." : "Auto-reply sent.",
+      );
     } finally {
       setResending(false);
     }
@@ -68,7 +72,10 @@ export function InquiryActions({
 
   return (
     <div className="space-y-5">
-      <form onSubmit={submit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <form
+        onSubmit={submit}
+        className="flex flex-col gap-3 sm:flex-row sm:items-end"
+      >
         <Controller
           control={form.control}
           name="status"
@@ -76,7 +83,11 @@ export function InquiryActions({
             <Field className="sm:max-w-56">
               <FieldLabel htmlFor="inquiry-status">Status</FieldLabel>
               <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="inquiry-status" className="w-full" aria-invalid={Boolean(fieldState.error)}>
+                <SelectTrigger
+                  id="inquiry-status"
+                  className="w-full"
+                  aria-invalid={Boolean(fieldState.error)}
+                >
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -93,15 +104,41 @@ export function InquiryActions({
           {form.formState.isSubmitting ? "Saving..." : "Save status"}
         </Button>
       </form>
-      {emailStatus === "failed" ? (
-        <div className="flex flex-col items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-          <p className="text-sm text-destructive">Email delivery failed for this inquiry.</p>
-          <Button type="button" variant="outline" onClick={resend} disabled={resending}>
-            {resending ? "Resending..." : "Resend notification"}
+      {notificationEmailStatus === "failed" ? (
+        <div className="border-destructive/30 bg-destructive/5 flex flex-col items-start gap-2 rounded-lg border p-4">
+          <p className="text-destructive text-sm">
+            Team email delivery failed.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => resend("notification")}
+            disabled={resending}
+          >
+            {resending ? "Resending..." : "Resend team email"}
           </Button>
         </div>
       ) : null}
-      {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
+      {autoReplyEmailStatus === "failed" ? (
+        <div className="border-destructive/30 bg-destructive/5 flex flex-col items-start gap-2 rounded-lg border p-4">
+          <p className="text-destructive text-sm">
+            Auto-reply delivery failed.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => resend("autoReply")}
+            disabled={resending}
+          >
+            {resending ? "Resending..." : "Resend auto-reply"}
+          </Button>
+        </div>
+      ) : null}
+      {error ? (
+        <p role="alert" className="text-destructive text-sm">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

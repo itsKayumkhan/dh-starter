@@ -1,19 +1,39 @@
 model Media {
-  id           String   @id @default(cuid())
-  ownerId      String?
-  provider     String   @default("cloudinary")
-  publicId     String   @unique
-  url          String
-  resourceType String
-  format       String
-  bytes        Int
-  width        Int?
-  height       Int?
-  folder       String
-  alt          String?
-  createdAt    DateTime @default(now())
+  id                String    @id @default(cuid())
+  ownerId           String?
+  provider          String    @default("cloudinary")
+  publicId          String    @unique
+  url               String
+  resourceType      String
+  format            String
+  bytes             Int
+  width             Int?
+  height            Int?
+  folder            String
+  alt               String?
+  createdAt         DateTime  @default(now())
+  deletePendingAt   DateTime?
+  deleteRequestedBy String?
+  deleteRequestIp   String?
 
   @@index([ownerId])
   @@index([folder])
   @@index([createdAt])
+  @@index([deletePendingAt])
+}
+
+model PendingUpload {
+  publicId      String   @id
+  ownerId       String
+  folder        String
+  resourceType  String
+  expectedBytes Int
+  mimeType      String
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
+  uploadedAt    DateTime?
+  uploadingAt   DateTime?
+
+  @@index([ownerId])
+  @@index([expiresAt])
 }

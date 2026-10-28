@@ -17,7 +17,5 @@ export function proxy(request: NextRequest) {
     url.searchParams.set("next", path + request.nextUrl.search);
     return NextResponse.redirect(url);
   }
-  if (signedIn && (path === ROUTES.login || path === ROUTES.signup))
-    return NextResponse.redirect(new URL(ROUTES.dashboard, request.url));
   return NextResponse.next();
 }

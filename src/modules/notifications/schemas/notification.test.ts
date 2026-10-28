@@ -3,7 +3,13 @@ import { ROUTES } from "@/lib/constants/routes";
 import { adminSendSchema, notificationInputSchema } from "./notification";
 
 describe("notification validation", () => {
-  const base = { target: "all", title: "Update", body: "News", email: false };
+  const base = {
+    broadcastId: "376aef70-f63a-47f9-9228-6cb84c36dcbf",
+    target: "all",
+    title: "Update",
+    body: "News",
+    email: false,
+  };
 
   it("requires the selected target detail", () => {
     expect(adminSendSchema.safeParse({ ...base, target: "user" }).success).toBe(

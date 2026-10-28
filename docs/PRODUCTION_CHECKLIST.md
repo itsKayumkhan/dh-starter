@@ -2,6 +2,9 @@
 
 ## Core
 
+- [ ] **.env.example:8** - Set TRUSTED_PROXY_HOPS to match the hosting proxy chain (for example 1 behind a single trusted proxy) + with 0 the client IP is not read from forwarded headers, so IP rate limits group all visitors behind the proxy.
+- [ ] **src/lib/email/providers/smtp.ts** - Use an SMTP server with TLS (implicit TLS or STARTTLS) + production SMTP refuses plaintext delivery.
+
 - [ ] **prisma/seed.mts:19** - Do not run development seed logins in production + predictable credentials would grant access.
 - [ ] **.env.example:14** - Replace console email provider with Resend or SMTP + console delivery is disabled in production.
 - [ ] **.env.example:4** - Set a new unique BETTER_AUTH_SECRET in production + shared development secrets can compromise sessions.
@@ -24,10 +27,14 @@
 
 ## Module: uploads
 
+- [ ] **.env.example:44** - Set UPLOADS_CRON_SECRET (32+ random characters) and schedule GET /api/uploads/cleanup with Authorization: Bearer <secret> + abandoned uploads are only removed by this job.
+
 - [ ] **src/modules/uploads/env.ts:5** - Set the production Cloudinary cloud name, API key, API secret, and unique folder prefix + signed uploads and Admin API verification cannot run without production credentials.
 - [ ] **src/modules/uploads/upload-rules.ts:3** - Review allowed formats, folder sizes, and the Cloudinary account's upload restrictions + production media policy may require different limits.
 
 ## Module: billing
+
+- [ ] **prisma/migrations/20261028120000_security_audit** - Apply this migration before enabling subscription checkout + checkout reservations need the SubscriptionCheckout table.
 
 - [ ] **src/modules/billing/plans.ts:21** - Replace the Starter placeholder Stripe Price ID + checkout cannot start with a placeholder.
 - [ ] **src/modules/billing/plans.ts:30** - Replace the Pro placeholder Stripe Price ID + checkout cannot start with a placeholder.

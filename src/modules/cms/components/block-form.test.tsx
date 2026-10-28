@@ -19,6 +19,7 @@ describe("generated block form", () => {
   it("adds, removes and reorders list items", async () => {
     render(
       <BlockForm
+        initialRevision={null}
         blockKey="home.faq"
         initialValue={{ heading: "Questions", items: [] }}
       />,
@@ -47,6 +48,7 @@ describe("generated block form", () => {
     await waitFor(() =>
       expect(saveBlock).toHaveBeenCalledWith({
         key: "home.faq",
+        revision: null,
         value: {
           heading: "Questions",
           items: [{ question: "Second", answer: "Two" }],
@@ -57,6 +59,7 @@ describe("generated block form", () => {
   it("shows schema validation errors for missing item fields", async () => {
     render(
       <BlockForm
+        initialRevision={null}
         blockKey="home.faq"
         initialValue={{ heading: "Questions", items: [] }}
       />,

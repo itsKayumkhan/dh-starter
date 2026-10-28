@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { DataTable, type DataTableColumn } from "@/components/shared/data-table";
+import {
+  DataTable,
+  type DataTableColumn,
+} from "@/components/shared/data-table";
 import { CONTACT_ROUTES } from "@/modules/contact/routes";
 import type { InquiryDto } from "@/modules/contact/server/inquiries";
 
@@ -14,11 +17,11 @@ const columns: DataTableColumn<InquiryDto>[] = [
       <div className="min-w-32">
         <Link
           href={CONTACT_ROUTES.inquiry(row.original.id)}
-          className="font-medium text-foreground underline-offset-4 hover:underline focus-visible:outline-ring"
+          className="text-foreground focus-visible:outline-ring font-medium underline-offset-4 hover:underline"
         >
           {row.original.name}
         </Link>
-        <p className="text-xs text-muted-foreground">{row.original.email}</p>
+        <p className="text-muted-foreground text-xs">{row.original.email}</p>
       </div>
     ),
   },
@@ -32,29 +35,60 @@ const columns: DataTableColumn<InquiryDto>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => (
-      <Badge variant={row.original.status === "closed" ? "secondary" : "outline"}>
+      <Badge
+        variant={row.original.status === "closed" ? "secondary" : "outline"}
+      >
         {row.original.status.replace("_", " ")}
       </Badge>
     ),
   },
   {
-    accessorKey: "emailStatus",
-    header: "Email",
+    accessorKey: "notificationEmailStatus",
+    header: "Team email",
     enableSorting: false,
     cell: ({ row }) => (
-      <Badge variant={row.original.emailStatus === "failed" ? "destructive" : "outline"}>
-        {row.original.emailStatus}
+      <Badge
+        variant={
+          row.original.notificationEmailStatus === "failed"
+            ? "destructive"
+            : "outline"
+        }
+      >
+        {row.original.notificationEmailStatus}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: "autoReplyEmailStatus",
+    header: "Auto-reply",
+    enableSorting: false,
+    cell: ({ row }) => (
+      <Badge
+        variant={
+          row.original.autoReplyEmailStatus === "failed"
+            ? "destructive"
+            : "outline"
+        }
+      >
+        {row.original.autoReplyEmailStatus}
       </Badge>
     ),
   },
   {
     accessorKey: "createdAt",
     header: "Received",
-    cell: ({ row }) => `${row.original.createdAt.slice(0, 16).replace("T", " ")} UTC`,
+    cell: ({ row }) =>
+      `${row.original.createdAt.slice(0, 16).replace("T", " ")} UTC`,
   },
 ];
 
-export function InquiriesTable({ data, pageCount }: { data: InquiryDto[]; pageCount: number }) {
+export function InquiriesTable({
+  data,
+  pageCount,
+}: {
+  data: InquiryDto[];
+  pageCount: number;
+}) {
   return (
     <DataTable
       columns={columns}

@@ -14,7 +14,8 @@ const inquirySelect = {
   message: true,
   source: true,
   status: true,
-  emailStatus: true,
+  notificationEmailStatus: true,
+  autoReplyEmailStatus: true,
   ip: true,
   userAgent: true,
   createdAt: true,
@@ -26,7 +27,9 @@ export type InquiryDto = Omit<
   "createdAt" | "updatedAt"
 > & { createdAt: string; updatedAt: string };
 
-function toDto(inquiry: Prisma.InquiryGetPayload<{ select: typeof inquirySelect }>): InquiryDto {
+function toDto(
+  inquiry: Prisma.InquiryGetPayload<{ select: typeof inquirySelect }>,
+): InquiryDto {
   return {
     ...inquiry,
     createdAt: inquiry.createdAt.toISOString(),
@@ -68,14 +71,20 @@ export async function listInquiries(input: {
 }
 
 export async function getInquiry(id: string) {
-  const record = await db.inquiry.findUnique({ where: { id }, select: inquirySelect });
+  const record = await db.inquiry.findUnique({
+    where: { id },
+    select: inquirySelect,
+  });
   if (!record) throw new NotFoundError();
   return toDto(record);
 }
 
 export async function setInquiryStatus(id: string, status: InquiryStatus) {
   const parsed = inquiryStatusSchema.parse(status);
-  const existing = await db.inquiry.findUnique({ where: { id }, select: { status: true } });
+  const existing = await db.inquiry.findUnique({
+    where: { id },
+    select: { status: true },
+  });
   if (!existing) throw new NotFoundError();
   await db.inquiry.update({ where: { id }, data: { status: parsed } });
   return existing.status;
@@ -106,19 +115,38 @@ export async function createInquiry(input: {
   });
 }
 
-export async function setInquiryEmailStatus(id: string, status: "sent" | "failed") {
-  await db.inquiry.update({ where: { id }, data: { emailStatus: status } });
+const emailStatusField = {
+  notification: "notificationEmailStatus",
+  autoReply: "autoReplyEmailStatus",
+} as const;
+
+export async function setInquiryEmailStatus(
+  id: string,
+  channel: keyof typeof emailStatusField,
+  status: "sent" | "failed",
+) {
+  await db.inquiry.update({
+    where: { id },
+    data: { [emailStatusField[channel]]: status },
+  });
 }
 
-export async function getFailedInquiryForResend(id: string) {
-  const record = await db.inquiry.findUnique({ where: { id }, select: inquirySelect });
+export async function getInquiryForResend(id: string) {
+  const record = await db.inquiry.findUnique({
+    where: { id },
+    select: inquirySelect,
+  });
   if (!record) throw new NotFoundError();
   return record;
 }
 
-export async function claimFailedNotification(id: string) {
+export async function claimFailedEmail(
+  id: string,
+  channel: keyof typeof emailStatusField,
+) {
+  const field = emailStatusField[channel];
   return db.inquiry.updateMany({
-    where: { id, emailStatus: "failed" },
-    data: { emailStatus: "pending" },
+    where: { id, [field]: "failed" },
+    data: { [field]: "pending" },
   });
 }

@@ -28,7 +28,7 @@ model Session {
   impersonatedBy String?
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
+  @@index([userId, updatedAt])
   @@map("session")
 }
 
@@ -49,6 +49,7 @@ model Account {
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@unique([providerId, accountId])
   @@map("account")
 }
 

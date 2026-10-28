@@ -1,15 +1,20 @@
 import "server-only";
 import { db } from "@/lib/db";
-import { getSiteSettings } from "@/lib/content/settings";
+import { mergeSettings } from "@/lib/content/settings";
 import { contentRegistry, type ContentKey } from "@/config/content";
+import { settingSchemas, type SettingKey } from "@/config/settings";
+import { blockRevision, settingsRevision } from "@/modules/cms/server/revision";
 
 export async function getSettingsEditorData() {
-  const [value, rows] = await Promise.all([
-    getSiteSettings(),
-    db.siteSetting.findMany({
-      select: { key: true, updatedAt: true, updatedBy: true },
-    }),
-  ]);
+  const rows = await db.siteSetting.findMany({
+    select: { key: true, value: true, updatedAt: true, updatedBy: true },
+  });
+  const value = mergeSettings(rows);
+  const editable = rows.every(
+    (row) =>
+      !(row.key in settingSchemas) ||
+      settingSchemas[row.key as SettingKey].safeParse(row.value).success,
+  );
   const ids = [
     ...new Set(
       rows
@@ -26,6 +31,8 @@ export async function getSettingsEditorData() {
   return {
     value,
     rows,
+    editable,
+    revision: settingsRevision(rows),
     editors: Object.fromEntries(editors.map((user) => [user.id, user.name])),
   };
 }
@@ -44,6 +51,8 @@ export async function getBlockEditorData(key: ContentKey) {
   return {
     block: contentRegistry[key],
     row,
+    editable: !row || contentRegistry[key].schema.safeParse(row.value).success,
+    revision: blockRevision(row),
     editorName: editor?.name ?? row?.updatedBy ?? null,
   };
 }

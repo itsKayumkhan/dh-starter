@@ -4,11 +4,15 @@ import { processWebhookEvent } from "@/modules/billing/server/process-webhook-ev
 import { webhookStore } from "@/modules/billing/server/webhook-store";
 import { handleBillingEvent } from "@/modules/billing/server/webhook-handlers";
 import { logger } from "@/lib/logger";
-
+import {
+  readWebhookBody,
+  WebhookBodyTooLargeError,
+} from "@/modules/billing/server/webhook-body";
 
 export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature");
-  if (!signature) return new Response("Missing Stripe signature", { status: 400 });
+  if (!signature)
+    return new Response("Missing Stripe signature", { status: 400 });
 
   let secret: string;
   try {
@@ -18,9 +22,18 @@ export async function POST(request: Request) {
     return new Response("Webhook unavailable", { status: 500 });
   }
 
+  let rawBody: Buffer;
+  try {
+    rawBody = await readWebhookBody(request);
+  } catch (error) {
+    if (error instanceof WebhookBodyTooLargeError)
+      return new Response("Webhook body too large", { status: 413 });
+    logger.warn("Billing webhook body rejected", { error });
+    return new Response("Invalid webhook body", { status: 400 });
+  }
+
   let event;
   try {
-    const rawBody = await request.text();
     event = getStripe().webhooks.constructEvent(rawBody, signature, secret);
   } catch (error) {
     logger.warn("Billing webhook signature rejected", { error });
@@ -28,10 +41,18 @@ export async function POST(request: Request) {
   }
 
   try {
-    await processWebhookEvent(event, { ...webhookStore, handle: handleBillingEvent });
+    const result = await processWebhookEvent(event, {
+      ...webhookStore,
+      handle: handleBillingEvent,
+    });
+    if (result === "processing")
+      return new Response("Webhook processing in progress", { status: 503 });
     return new Response("ok", { status: 200 });
   } catch (error) {
-    logger.error("Billing webhook processing failed", { eventId: event.id, error });
+    logger.error("Billing webhook processing failed", {
+      eventId: event.id,
+      error,
+    });
     return new Response("Webhook processing failed", { status: 500 });
   }
 }

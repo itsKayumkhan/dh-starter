@@ -35,6 +35,15 @@ test("password recovery shows a neutral completion state", async ({ page }) => {
   ).toBeVisible();
 });
 
-test.skip("verified sign in and account management", async () => {
-  // Requires a seeded database and an email capture service for verification links.
+test("verified seeded user signs in and opens account management", async ({
+  page,
+}) => {
+  await page.goto(ROUTES.login);
+  await page.getByLabel("Email").fill("user@dhstarter.test");
+  await page.getByLabel("Password").fill("DhStarter@User2026");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(new RegExp(`${ROUTES.dashboard}$`));
+  await page.goto(ROUTES.account);
+  await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
+  await expect(page.getByLabel("Email")).toHaveValue("user@dhstarter.test");
 });

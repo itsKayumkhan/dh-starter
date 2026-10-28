@@ -29,11 +29,16 @@ import {
 } from "@/modules/notifications/schemas/notification";
 import { adminSend } from "@/modules/notifications/server/actions";
 
-export function SendNotificationForm() {
+export function SendNotificationForm({
+  canReachAdmins,
+}: {
+  canReachAdmins: boolean;
+}) {
   const [formError, setFormError] = useState("");
   const form = useForm<AdminSendInput>({
     resolver: zodResolver(adminSendSchema),
     defaultValues: {
+      broadcastId: crypto.randomUUID(),
       target: "user",
       role: "user",
       userId: "",
@@ -65,7 +70,16 @@ export function SendNotificationForm() {
     );
     if (result.data.emailFailed)
       toast.error(`${result.data.emailFailed} email deliveries failed.`);
-    form.reset();
+    form.reset({
+      broadcastId: crypto.randomUUID(),
+      target: "user",
+      role: "user",
+      userId: "",
+      title: "",
+      body: "",
+      href: "",
+      email: false,
+    });
   });
 
   return (
@@ -88,7 +102,9 @@ export function SendNotificationForm() {
                 <SelectContent>
                   <SelectItem value="user">One user</SelectItem>
                   <SelectItem value="role">A role</SelectItem>
-                  <SelectItem value="all">All users</SelectItem>
+                  {canReachAdmins ? (
+                    <SelectItem value="all">All users</SelectItem>
+                  ) : null}
                 </SelectContent>
               </Select>
               <FieldError errors={[fieldState.error]} />
@@ -120,7 +136,9 @@ export function SendNotificationForm() {
                   <SelectContent>
                     <SelectItem value="user">User</SelectItem>
                     <SelectItem value="staff">Staff</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
+                    {canReachAdmins ? (
+                      <SelectItem value="admin">Admin</SelectItem>
+                    ) : null}
                   </SelectContent>
                 </Select>
                 <FieldError errors={[fieldState.error]} />

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense, cache } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
@@ -6,6 +7,7 @@ import { getSession } from "@/lib/auth/session";
 import { ROUTES } from "@/lib/constants/routes";
 import { buildMetadata } from "@/lib/seo";
 import { getContent } from "@/lib/content/blocks";
+import { getSiteSettings } from "@/lib/content/settings";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,11 +22,17 @@ import { billingPlans, oneTimeProducts } from "@/modules/billing/plans";
 import { BILLING_ROUTES } from "@/modules/billing/routes";
 import { hasManagedSubscription } from "@/modules/billing/server/queries";
 
-export const metadata = buildMetadata({
-  title: "Pricing",
-  description: "Choose a plan that fits your project.",
-  path: BILLING_ROUTES.pricing,
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return buildMetadata(
+    {
+      title: "Pricing",
+      description: "Choose a plan that fits your project.",
+      path: BILLING_ROUTES.pricing,
+    },
+    settings,
+  );
+}
 
 export default async function PricingPage() {
   const intro = await getContent("pricing.intro");

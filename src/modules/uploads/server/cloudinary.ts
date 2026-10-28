@@ -73,32 +73,79 @@ function verifyTicket(
 export const cloudinaryStorage: Storage = {
   async sign({ folder, ownerId }) {
     const env = configuredClient();
-    const rule = UPLOAD_RULES[folder];
     const timestamp = Math.floor(Date.now() / 1000);
     const id = randomUUID() + (folder === "documents" ? ".pdf" : "");
     const cloudFolder = `${env.CLOUDINARY_FOLDER_PREFIX}/${folder}`;
     const publicId = `${cloudFolder}/${id}`;
-    const params = {
-      timestamp: String(timestamp),
-      folder: cloudFolder,
-      public_id: id,
-      allowed_formats: rule.formats.join(","),
-      overwrite: "false",
-      unique_filename: "false",
-    };
     return {
-      cloudName: env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-      apiKey: env.CLOUDINARY_API_KEY,
-      uploadUrl: `https://api.cloudinary.com/v1_1/${env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/${rule.resourceType}/upload`,
-      params,
-      signature: cloudinary.utils.api_sign_request(
-        params,
-        env.CLOUDINARY_API_SECRET,
-      ),
+      uploadUrl: "/api/uploads/file",
       publicId,
       folder,
       ticket: `${timestamp}.${ticketFor(env.CLOUDINARY_API_SECRET, ownerId, publicId, folder, timestamp)}`,
     };
+  },
+
+  async upload({ folder, ownerId, publicId, ticket, bytes }) {
+    const env = configuredClient();
+    verifyTicket(env.CLOUDINARY_API_SECRET, ownerId, publicId, folder, ticket);
+    if (!hasExpectedPublicId(publicId, env.CLOUDINARY_FOLDER_PREFIX, folder))
+      throw new ValidationError();
+    const rule = UPLOAD_RULES[folder];
+    if (bytes.length < 1 || bytes.length > rule.maxBytes)
+      throw new ValidationError();
+    if (folder === "documents" && !isPdf(bytes)) throw new ValidationError();
+    const folderPath = `${env.CLOUDINARY_FOLDER_PREFIX}/${folder}`;
+    const id = publicId.slice(folderPath.length + 1);
+    let uploadedId: string | null = null;
+    let uploadedType: string = rule.resourceType;
+    try {
+      const response: unknown = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: folderPath,
+            public_id: id,
+            resource_type: rule.resourceType,
+            type: "upload",
+            allowed_formats: [...rule.formats],
+            overwrite: false,
+            unique_filename: false,
+          },
+          (error, result) => (error ? reject(error) : resolve(result)),
+        );
+        stream.end(bytes);
+      });
+      const uploaded = z
+        .object({
+          public_id: z.string(),
+          resource_type: z.enum(["image", "raw", "video"]),
+        })
+        .safeParse(response);
+      if (!uploaded.success) throw new ValidationError();
+      uploadedId = uploaded.data.public_id;
+      uploadedType = uploaded.data.resource_type;
+      if (uploadedId !== publicId || uploadedType !== rule.resourceType)
+        throw new ValidationError();
+      return await this.verify({ folder, ownerId, publicId, ticket });
+    } catch (error) {
+      const targets: { publicId: string; resourceType: string }[] = [
+        { publicId, resourceType: rule.resourceType },
+      ];
+      if (
+        uploadedId &&
+        (uploadedId !== publicId || uploadedType !== rule.resourceType)
+      )
+        targets.push({ publicId: uploadedId, resourceType: uploadedType });
+      for (const target of targets) {
+        try {
+          await this.destroy(target);
+        } catch (cleanupError) {
+          logger.error("Rejected upload cleanup failed", {
+            error: cleanupError,
+          });
+        }
+      }
+      throw error;
+    }
   },
 
   async verify({ folder, ownerId, publicId, ticket }) {
@@ -158,3 +205,30 @@ export const cloudinaryStorage: Storage = {
       throw new Error("Cloudinary could not remove the asset.");
   },
 };
+
+export function isPdf(bytes: Buffer): boolean {
+  if (
+    bytes.length < 32 ||
+    !bytes
+      .subarray(0, 10)
+      .toString("ascii")
+      .match(/^%PDF-(?:1\.[0-7]|2\.0)\r?\n/)
+  )
+    return false;
+  const data = bytes.toString("latin1");
+  const tail = data.slice(-1024);
+  const marker = /startxref\s+(\d+)\s+%%EOF\s*$/.exec(tail);
+  if (!marker) return false;
+  const offset = Number(marker[1]);
+  if (!Number.isSafeInteger(offset) || offset < 9 || offset >= bytes.length)
+    return false;
+  const table = data.slice(offset, data.lastIndexOf("startxref"));
+  const classic =
+    table.startsWith("xref") &&
+    /\btrailer\s*<<[\s\S]*?\/Root\s+\d+\s+\d+\s+R/.test(table);
+  const stream =
+    /^\d+\s+\d+\s+obj\b[\s\S]*?\/Type\s*\/XRef\b[\s\S]*?\/Root\s+\d+\s+\d+\s+R/.test(
+      table,
+    );
+  return (classic || stream) && /\/Type\s*\/Catalog\b/.test(data);
+}

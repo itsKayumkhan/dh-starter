@@ -3,9 +3,11 @@ import type { ProviderInput } from "@/lib/email/providers/types";
 import { AppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 
-export async function send(input: ProviderInput): Promise<{ id?: string }> {
+export const send: (
+  input: ProviderInput,
+) => Promise<{ id?: string }> = async () => {
   if (getServerEnv().NODE_ENV === "production")
     throw new AppError("EMAIL_CONFIG", "Email service is unavailable.");
-  logger.info("Development email", { to: input.to, subject: input.subject });
+  logger.info("Development email queued");
   return {};
-}
+};

@@ -3,6 +3,8 @@ model AppRateLimit {
   key     String   @unique
   count   Int
   resetAt DateTime
+
+  @@index([resetAt])
 }
 
 model AuditLog {
@@ -18,4 +20,5 @@ model AuditLog {
   @@index([createdAt])
   @@index([actorId])
   @@index([action])
+  @@index([targetType, targetId, createdAt])
 }

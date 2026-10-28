@@ -4,9 +4,9 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth/server";
 import { getSession } from "@/lib/auth/session";
-import { ROUTES } from "@/lib/constants/routes";
 import { safeAction } from "@/lib/safe-action";
 import { AppError } from "@/lib/errors";
+import { db } from "@/lib/db";
 import { AUTH_ROUTES } from "@/components/auth/routes";
 import {
   profileSchema,
@@ -77,10 +77,14 @@ export const revokeAccountSession = safeAction(
         "This session cannot be revoked here.",
       );
     try {
-      const sessions = await auth.api.listSessions({
-        headers: await headers(),
+      const target = await db.session.findFirst({
+        where: {
+          id: input.id,
+          userId: current.user.id,
+          expiresAt: { gt: new Date() },
+        },
+        select: { token: true },
       });
-      const target = sessions.find((session) => session.id === input.id);
       if (!target) throw new AppError("SESSION_MISSING", "Session not found.");
       await auth.api.revokeSession({
         headers: await headers(),
@@ -119,19 +123,36 @@ export const deleteAccount = safeAction(
     rateLimit: { key: "account-delete", limit: 3, windowSec: 600 },
   },
   async (input) => {
+    const session = await getSession();
+    if (!session)
+      throw new AppError("ACCOUNT_DELETE", "Sign in to delete your account.");
+    if (session.user.role === "admin")
+      throw new AppError(
+        "ACCOUNT_DELETE",
+        "Demote this admin account before deletion.",
+      );
+    const credential = await db.account.findFirst({
+      where: { userId: session.user.id, providerId: "credential" },
+      select: { password: true },
+    });
+    if (credential?.password && !input.password)
+      throw new AppError(
+        "ACCOUNT_DELETE",
+        "Enter your password to request account deletion.",
+      );
     try {
       const result = await auth.api.deleteUser({
         headers: await headers(),
-        body: { password: input.password },
+        body: credential?.password ? { password: input.password } : {},
       });
-      if (!result.success) throw new Error("Deletion was not completed");
+      if (!result.success || result.message !== "Verification email sent")
+        throw new Error("Deletion verification was not sent");
     } catch {
       throw new AppError(
         "ACCOUNT_DELETE",
-        "Could not delete your account. Check your password and try again.",
+        "Could not request account deletion. Check your password and try again.",
       );
     }
-    revalidatePath(ROUTES.dashboard);
-    return { deleted: true };
+    return { verificationSent: true };
   },
 );

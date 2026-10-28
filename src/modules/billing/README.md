@@ -12,7 +12,7 @@ This module provides hosted Stripe Checkout, subscriptions, one-time payments, t
 
 `/pricing` is public. Signed-in customers can open Checkout or the portal and review their plan at `/dashboard/billing`. Admins with `billing:manage` can review payments at `/admin/billing` and subscriptions at `/admin/billing/subscriptions`.
 
-The webhook verifies the raw Stripe signature before touching the database. It claims each event ID in `WebhookEvent`, acknowledges processed or recently processing duplicates, retries failed and stale claims, and records a failed attempt if handling fails. Stripe remains the payment source of truth; this module stores a local display and admin history.
+The webhook limits the raw request body to 1 MiB and verifies the Stripe signature before touching the database. It claims each event ID in `WebhookEvent`, acknowledges processed duplicates, returns a retryable response for events still processing, retries failed and stale claims, and records a failed attempt if handling fails. Stripe remains the payment source of truth; this module stores a local display and admin history.
 
 ## Tests
 

@@ -20,6 +20,7 @@ const safeLink = z
   );
 const imageUrl = z
   .string()
+  .max(2048)
   .refine(
     (value) =>
       !value ||
@@ -27,24 +28,26 @@ const imageUrl = z
       (z.url().safeParse(value).success && /^https?:\/\//i.test(value)),
     "Use a path or an HTTP URL",
   );
-const link = z.object({ label: z.string(), href: safeLink });
+const short = z.string().min(1).max(160);
+const paragraph = z.string().min(1).max(2000);
+const link = z.object({ label: z.string().max(160), href: safeLink.max(2048) });
 const requiredLink = z.object({
-  label: z.string().min(1),
-  href: safeLink.refine(Boolean, "Link is required"),
+  label: short,
+  href: safeLink.max(2048).refine(Boolean, "Link is required"),
 });
 const feature = z.object({
-  title: z.string().min(1),
-  description: z.string().min(1),
-  icon: z.string().min(1),
+  title: short,
+  description: paragraph,
+  icon: short,
 });
 const faq = z.object({
-  question: z.string().min(1),
-  answer: z.string().min(1),
+  question: short,
+  answer: paragraph,
 });
 const testimonial = z.object({
-  quote: z.string().min(1),
-  name: z.string().min(1),
-  role: z.string(),
+  quote: paragraph,
+  name: short,
+  role: z.string().max(160),
   avatar: imageUrl,
 });
 
@@ -54,9 +57,9 @@ export const contentRegistry = {
     label: "Hero",
     group: "Home",
     schema: z.object({
-      eyebrow: z.string().min(1),
-      title: z.string().min(1),
-      subtitle: z.string().min(1),
+      eyebrow: short,
+      title: short,
+      subtitle: paragraph,
       primary: requiredLink,
       secondary: link,
     }),
@@ -81,7 +84,7 @@ export const contentRegistry = {
     key: "home.features",
     label: "Features",
     group: "Home",
-    schema: z.object({ heading: z.string().min(1), items: z.array(feature) }),
+    schema: z.object({ heading: short, items: z.array(feature).max(12) }),
     defaultValue: {
       heading: "Features",
       items: [] as z.infer<typeof feature>[],
@@ -104,7 +107,7 @@ export const contentRegistry = {
     key: "home.faq",
     label: "FAQ",
     group: "Home",
-    schema: z.object({ heading: z.string().min(1), items: z.array(faq) }),
+    schema: z.object({ heading: short, items: z.array(faq).max(30) }),
     defaultValue: {
       heading: "Frequently asked questions",
       items: [] as z.infer<typeof faq>[],
@@ -127,8 +130,8 @@ export const contentRegistry = {
     label: "Testimonials",
     group: "Home",
     schema: z.object({
-      heading: z.string().min(1),
-      items: z.array(testimonial),
+      heading: short,
+      items: z.array(testimonial).max(12),
     }),
     defaultValue: {
       heading: "Testimonials",
@@ -154,10 +157,10 @@ export const contentRegistry = {
     label: "Contact intro",
     group: "Contact",
     schema: z.object({
-      title: z.string().min(1),
-      subtitle: z.string().min(1),
-      formTitle: z.string().min(1),
-      detailsTitle: z.string().min(1),
+      title: short,
+      subtitle: paragraph,
+      formTitle: short,
+      detailsTitle: short,
     }),
     defaultValue: {
       title: "Contact us",
@@ -178,10 +181,10 @@ export const contentRegistry = {
     label: "Pricing intro",
     group: "Pricing",
     schema: z.object({
-      eyebrow: z.string().min(1),
-      title: z.string().min(1),
-      subtitle: z.string().min(1),
-      servicesTitle: z.string().min(1),
+      eyebrow: short,
+      title: short,
+      subtitle: paragraph,
+      servicesTitle: short,
     }),
     defaultValue: {
       eyebrow: "Simple pricing",

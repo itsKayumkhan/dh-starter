@@ -108,16 +108,30 @@ async function InquiryDetailPageContent({
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Email status</dt>
+                  <dt className="text-muted-foreground">Team email</dt>
                   <dd>
                     <Badge
                       variant={
-                        inquiry.emailStatus === "failed"
+                        inquiry.notificationEmailStatus === "failed"
                           ? "destructive"
                           : "outline"
                       }
                     >
-                      {inquiry.emailStatus}
+                      {inquiry.notificationEmailStatus}
+                    </Badge>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Auto-reply</dt>
+                  <dd>
+                    <Badge
+                      variant={
+                        inquiry.autoReplyEmailStatus === "failed"
+                          ? "destructive"
+                          : "outline"
+                      }
+                    >
+                      {inquiry.autoReplyEmailStatus}
                     </Badge>
                   </dd>
                 </div>
@@ -132,7 +146,8 @@ async function InquiryDetailPageContent({
               <InquiryActions
                 id={inquiry.id}
                 status={inquiry.status}
-                emailStatus={inquiry.emailStatus}
+                notificationEmailStatus={inquiry.notificationEmailStatus}
+                autoReplyEmailStatus={inquiry.autoReplyEmailStatus}
               />
             </CardContent>
           </Card>

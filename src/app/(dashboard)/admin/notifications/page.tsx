@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { PageSkeleton } from "@/components/shared/page-skeleton";
 import { requirePermission } from "@/lib/auth/session";
+import { can } from "@/lib/auth/permissions";
 import { buildMetadata } from "@/lib/seo";
 import { SendNotificationForm } from "@/modules/notifications/components/send-notification-form";
 import { NOTIFICATION_MESSAGES } from "@/modules/notifications/messages";
@@ -13,7 +14,7 @@ export const metadata = buildMetadata({
 });
 
 async function AdminNotificationsPageContent() {
-  await requirePermission("notifications:send");
+  const user = await requirePermission("notifications:send");
   return (
     <main className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6">
       <div>
@@ -21,14 +22,20 @@ async function AdminNotificationsPageContent() {
           {NOTIFICATION_MESSAGES.send}
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Send an in-app update to a user, a role, or everyone.
+          Send an in-app update to permitted recipients.
         </p>
       </div>
-      <SendNotificationForm />
+      <SendNotificationForm canReachAdmins={can(user, "users:write")} />
     </main>
   );
 }
 
 export default function AdminNotificationsPage() {
-  return <Suspense fallback={<PageSkeleton title="Send notification" variant="form" />}><AdminNotificationsPageContent /></Suspense>;
+  return (
+    <Suspense
+      fallback={<PageSkeleton title="Send notification" variant="form" />}
+    >
+      <AdminNotificationsPageContent />
+    </Suspense>
+  );
 }

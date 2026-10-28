@@ -13,8 +13,12 @@ vi.mock("@/lib/db", () => ({
 }));
 vi.mock("@/lib/logger", () => ({ logger: { warn } }));
 
-import { getSiteSettings, mergeSettings } from "@/lib/content/settings";
-import { getContent, parseContent } from "@/lib/content/blocks";
+import {
+  getSiteSettings,
+  mergeSettings,
+  readSiteSettings,
+} from "@/lib/content/settings";
+import { getContent, parseContent, readContent } from "@/lib/content/blocks";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -42,6 +46,17 @@ describe("site settings", () => {
     findMany.mockRejectedValue(new Error("offline"));
     expect((await getSiteSettings()).name).toBe(site.name);
   });
+  it("does not return a cacheable settings fallback on database failure", async () => {
+    findMany.mockRejectedValueOnce(new Error("offline"));
+    await expect(readSiteSettings()).rejects.toThrow("offline");
+  });
+  it("returns stored settings immediately after an outage recovers", async () => {
+    findMany
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce([{ key: "name", value: "Recovered" }]);
+    expect((await getSiteSettings()).name).toBe(site.name);
+    expect((await getSiteSettings()).name).toBe("Recovered");
+  });
 });
 
 describe("content blocks", () => {
@@ -67,5 +82,23 @@ describe("content blocks", () => {
     expect(await getContent("home.hero")).toEqual(
       contentRegistry["home.hero"].defaultValue,
     );
+  });
+  it("does not return a cacheable content fallback on database failure", async () => {
+    findUnique.mockRejectedValueOnce(new Error("offline"));
+    await expect(readContent("home.hero")).rejects.toThrow("offline");
+  });
+  it("returns stored content immediately after an outage recovers", async () => {
+    findUnique
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce({
+        value: {
+          ...contentRegistry["home.hero"].defaultValue,
+          title: "Recovered title",
+        },
+      });
+    expect((await getContent("home.hero")).title).toBe(
+      contentRegistry["home.hero"].defaultValue.title,
+    );
+    expect((await getContent("home.hero")).title).toBe("Recovered title");
   });
 });

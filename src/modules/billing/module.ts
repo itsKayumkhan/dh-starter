@@ -5,6 +5,7 @@ import { BILLING_ROUTES } from "@/modules/billing/routes";
 export const billingModule: AppModule = {
   id: "billing",
   name: "Stripe billing",
+  publicRoutes: [BILLING_ROUTES.pricing],
   nav: [
     {
       title: "Billing",

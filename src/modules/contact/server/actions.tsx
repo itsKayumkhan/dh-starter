@@ -20,10 +20,11 @@ import {
   submitInquirySchema,
 } from "@/modules/contact/schemas/inquiry";
 import { isFormTokenReady } from "@/modules/contact/server/form-token";
+import { claimFormToken } from "@/modules/contact/server/form-token-claim";
 import {
   createInquiry,
-  claimFailedNotification,
-  getFailedInquiryForResend,
+  claimFailedEmail,
+  getInquiryForResend,
   setInquiryEmailStatus,
   setInquiryStatus,
 } from "@/modules/contact/server/inquiries";
@@ -43,6 +44,11 @@ const submitAction = safeAction(
         "CONTACT_FORM_INVALID",
         "Please refresh the form and try again.",
       );
+    if (!(await claimFormToken(input.formToken)))
+      throw new AppError(
+        "CONTACT_FORM_REPLAY",
+        "Please refresh the form and try again.",
+      );
 
     const userAgent = z
       .string()
@@ -60,35 +66,43 @@ const submitAction = safeAction(
       userAgent: userAgent.success ? userAgent.data : null,
     });
 
-    try {
-      const site = await getSiteSettings();
-      const notifyEmail = getContactEnv().notifyEmail ?? site.supportEmail;
-      const results = await Promise.allSettled([
-        sendEmail({
+    const sitePromise = getSiteSettings();
+    const deliveries = await Promise.allSettled([
+      (async () => {
+        const site = await sitePromise;
+        const notifyEmail = getContactEnv().notifyEmail ?? site.supportEmail;
+        await sendEmail({
           to: notifyEmail,
           subject: `New inquiry for ${site.name}`,
           react: <InquiryNotification inquiry={inquiry} />,
           replyTo: inquiry.email,
-        }),
-        sendEmail({
+        });
+      })(),
+      (async () => {
+        const site = await sitePromise;
+        await sendEmail({
           to: inquiry.email,
           subject: `Thanks for contacting ${site.name}`,
           react: <InquiryAutoReply inquiry={inquiry} />,
-        }),
-      ]);
-      const failed = results.some((result) => result.status === "rejected");
-      await setInquiryEmailStatus(inquiry.id, failed ? "failed" : "sent");
-      if (failed)
-        logger.error("Inquiry email delivery failed", {
-          inquiryId: inquiry.id,
         });
-    } catch (error) {
-      logger.error("Inquiry email delivery failed", {
-        inquiryId: inquiry.id,
-        error,
-      });
-      await setInquiryEmailStatus(inquiry.id, "failed");
-    }
+      })(),
+    ]);
+    await Promise.all(
+      (["notification", "autoReply"] as const).map(async (channel, index) => {
+        const result = deliveries[index];
+        await setInquiryEmailStatus(
+          inquiry.id,
+          channel,
+          result?.status === "fulfilled" ? "sent" : "failed",
+        );
+        if (result?.status === "rejected")
+          logger.error("Inquiry email delivery failed", {
+            inquiryId: inquiry.id,
+            channel,
+            error: result.reason,
+          });
+      }),
+    );
     revalidatePath(CONTACT_ROUTES.inquiries);
     return { id: inquiry.id };
   },
@@ -124,32 +138,44 @@ export async function changeInquiryStatus(input: unknown) {
 
 const resendAction = safeAction(
   {
-    schema: z.object({ id: inquiryIdSchema }),
+    schema: z.object({
+      id: inquiryIdSchema,
+      channel: z.enum(["notification", "autoReply"]),
+    }),
     permission: "inquiries:read",
     rateLimit: { key: "contact:resend", limit: 10, windowSec: 600 },
   },
-  async ({ id }, { user, ip }) => {
-    const inquiry = await getFailedInquiryForResend(id);
-    const claim = await claimFailedNotification(id);
+  async ({ id, channel }, { user, ip }) => {
+    const inquiry = await getInquiryForResend(id);
+    const claim = await claimFailedEmail(id, channel);
     if (claim.count !== 1) throw new ConflictError();
     try {
       const site = await getSiteSettings();
-      await sendEmail({
-        to: getContactEnv().notifyEmail ?? site.supportEmail,
-        subject: `New inquiry for ${site.name}`,
-        react: <InquiryNotification inquiry={inquiry} />,
-        replyTo: inquiry.email,
-      });
-      await setInquiryEmailStatus(id, "sent");
+      if (channel === "notification") {
+        await sendEmail({
+          to: getContactEnv().notifyEmail ?? site.supportEmail,
+          subject: `New inquiry for ${site.name}`,
+          react: <InquiryNotification inquiry={inquiry} />,
+          replyTo: inquiry.email,
+        });
+      } else {
+        await sendEmail({
+          to: inquiry.email,
+          subject: `Thanks for contacting ${site.name}`,
+          react: <InquiryAutoReply inquiry={inquiry} />,
+        });
+      }
+      await setInquiryEmailStatus(id, channel, "sent");
     } catch (error) {
-      await setInquiryEmailStatus(id, "failed");
-      logger.error("Inquiry notification resend failed", {
+      await setInquiryEmailStatus(id, channel, "failed");
+      logger.error("Inquiry email resend failed", {
         inquiryId: id,
+        channel,
         error,
       });
       throw new AppError(
         "CONTACT_RESEND_FAILED",
-        "The notification could not be sent.",
+        "The email could not be sent.",
       );
     } finally {
       revalidatePath(CONTACT_ROUTES.inquiry(id));
@@ -157,14 +183,15 @@ const resendAction = safeAction(
     }
     await writeAudit({
       actorId: user?.id,
-      action: "inquiry.notification_resent",
+      action: "inquiry.email_resent",
       target: { type: "Inquiry", id },
+      meta: { channel },
       ip,
     });
     return { id };
   },
 );
 
-export async function resendInquiryNotification(input: unknown) {
+export async function resendInquiryEmail(input: unknown) {
   return resendAction(input);
 }

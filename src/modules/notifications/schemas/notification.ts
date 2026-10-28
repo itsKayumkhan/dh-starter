@@ -21,6 +21,7 @@ export const notificationInputSchema = z.object({
 
 export const adminSendSchema = z
   .object({
+    broadcastId: z.uuid(),
     target: z.enum(["user", "role", "all"]),
     userId: z.string().trim().optional(),
     role: z.enum(ROLES).optional(),

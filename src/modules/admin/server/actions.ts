@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth/server";
+import { runUserDeleteHooks } from "@/lib/auth/user-deletion";
 import { safeAction } from "@/lib/safe-action";
 import { writeAudit } from "@/lib/audit";
 import { sendEmail } from "@/lib/email";
@@ -36,13 +37,11 @@ function refreshUsers(id?: string) {
   revalidatePath(ADMIN_ROUTES.audit);
 }
 
-async function targetUser(id: string) {
-  const user = await db.user.findUnique({
+async function finishAudit(id: string, action: string, targetId?: string) {
+  await db.auditLog.update({
     where: { id },
-    select: { id: true, role: true, name: true, email: true, banned: true },
+    data: { action, ...(targetId ? { targetId } : {}) },
   });
-  if (!user) throw new NotFoundError();
-  return user;
 }
 
 export const changeRole = safeAction(
@@ -53,7 +52,7 @@ export const changeRole = safeAction(
   },
   async ({ id, role }, { user, ip }) => {
     if (!user) throw new ForbiddenError();
-    const previousRole = await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(572931)`;
       const target = await tx.user.findUnique({
         where: { id },
@@ -66,17 +65,19 @@ export const changeRole = safeAction(
           : 0;
       if (!mayChangeRole(user.id, id, target.role, role, adminCount))
         throw new ConflictError();
-      if (target.role !== role)
+      if (target.role !== role) {
         await tx.user.update({ where: { id }, data: { role } });
-      return target.role;
-    });
-    if (previousRole === role) return { id, role };
-    await writeAudit({
-      actorId: user.id,
-      action: "user.role_changed",
-      target: { type: "user", id },
-      meta: { from: previousRole, to: role },
-      ip,
+        await writeAudit(
+          {
+            actorId: user.id,
+            action: "user.role_changed",
+            target: { type: "user", id },
+            meta: { from: target.role, to: role },
+            ip,
+          },
+          tx,
+        );
+      }
     });
     refreshUsers(id);
     return { id, role };
@@ -95,7 +96,6 @@ export const banUser = safeAction(
     const banExpiresIn = banDurationSeconds(expiresAt, new Date());
     if (expiresAt && !banExpiresIn)
       throw new AppError("INVALID_EXPIRY", "Expiry must be in the future.");
-    const authHeaders = await headers();
     await db.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(572931)`;
       const target = await tx.user.findUnique({
@@ -109,21 +109,27 @@ export const banUser = safeAction(
         (await tx.user.count({ where: { role: "admin", banned: false } })) <= 1
       )
         throw new ConflictError();
-      await auth.api.banUser({
-        headers: authHeaders,
-        body: {
-          userId: id,
+      await tx.user.update({
+        where: { id },
+        data: {
+          banned: true,
           banReason: reason,
-          ...(banExpiresIn ? { banExpiresIn } : {}),
+          banExpires: banExpiresIn
+            ? new Date(Date.now() + banExpiresIn * 1000)
+            : null,
         },
       });
-    });
-    await writeAudit({
-      actorId: user.id,
-      action: "user.banned",
-      target: { type: "user", id },
-      meta: { reason, expiresAt: expiresAt ?? null },
-      ip,
+      await tx.session.deleteMany({ where: { userId: id } });
+      await writeAudit(
+        {
+          actorId: user.id,
+          action: "user.banned",
+          target: { type: "user", id },
+          meta: { reason, expiresAt: expiresAt ?? null },
+          ip,
+        },
+        tx,
+      );
     });
     refreshUsers(id);
     return { id };
@@ -133,17 +139,27 @@ export const banUser = safeAction(
 export const unbanUser = safeAction(
   { schema: userIdSchema, permission: "users:ban", rateLimit: actionRateLimit },
   async ({ id }, { user, ip }) => {
-    if (!user || user.role !== "admin") throw new ForbiddenError();
-    await targetUser(id);
-    await auth.api.unbanUser({
-      headers: await headers(),
-      body: { userId: id },
-    });
-    await writeAudit({
-      actorId: user.id,
-      action: "user.unbanned",
-      target: { type: "user", id },
-      ip,
+    if (!user || user.role !== "admin" || id === user.id)
+      throw new ForbiddenError();
+    await db.$transaction(async (tx) => {
+      const target = await tx.user.findUnique({
+        where: { id },
+        select: { id: true },
+      });
+      if (!target) throw new NotFoundError();
+      await tx.user.update({
+        where: { id },
+        data: { banned: false, banReason: null, banExpires: null },
+      });
+      await writeAudit(
+        {
+          actorId: user.id,
+          action: "user.unbanned",
+          target: { type: "user", id },
+          ip,
+        },
+        tx,
+      );
     });
     refreshUsers(id);
     return { id };
@@ -157,17 +173,24 @@ export const revokeUserSessions = safeAction(
     rateLimit: actionRateLimit,
   },
   async ({ id }, { user, ip }) => {
-    if (!user || user.role !== "admin") throw new ForbiddenError();
-    await targetUser(id);
-    await auth.api.revokeUserSessions({
-      headers: await headers(),
-      body: { userId: id },
-    });
-    await writeAudit({
-      actorId: user.id,
-      action: "user.sessions_revoked",
-      target: { type: "user", id },
-      ip,
+    if (!user || user.role !== "admin" || id === user.id)
+      throw new ForbiddenError();
+    await db.$transaction(async (tx) => {
+      const target = await tx.user.findUnique({
+        where: { id },
+        select: { id: true },
+      });
+      if (!target) throw new NotFoundError();
+      await tx.session.deleteMany({ where: { userId: id } });
+      await writeAudit(
+        {
+          actorId: user.id,
+          action: "user.sessions_revoked",
+          target: { type: "user", id },
+          ip,
+        },
+        tx,
+      );
     });
     refreshUsers(id);
     return { id };
@@ -182,21 +205,26 @@ export const inviteUser = safeAction(
   },
   async ({ name, email, role }, { user, ip }) => {
     if (!user || user.role !== "admin") throw new ForbiddenError();
+    const attempt = await writeAudit({
+      actorId: user.id,
+      action: "user.invite_attempted",
+      target: { type: "user" },
+      meta: { email, role },
+      ip,
+    });
     const authHeaders = await headers();
     const created = await auth.api.createUser({
       headers: authHeaders,
       body: {
         name,
         email,
-        role: role === "staff" ? "user" : role,
+        role: role === "staff" ? undefined : role,
         password: randomBytes(48).toString("base64url"),
-        data: { emailVerified: true },
+        data: { emailVerified: true, ...(role === "staff" ? { role } : {}) },
       },
     });
     const id = created.user.id;
     try {
-      if (role === "staff")
-        await db.user.update({ where: { id }, data: { role } });
       // Better Auth's reset endpoint consumes verification values with this identifier.
       const token = randomBytes(32).toString("base64url");
       const context = await auth.$context;
@@ -223,13 +251,7 @@ export const inviteUser = safeAction(
       await auth.api.removeUser({ headers: authHeaders, body: { userId: id } });
       throw error;
     }
-    await writeAudit({
-      actorId: user.id,
-      action: "user.invited",
-      target: { type: "user", id },
-      meta: { email, role },
-      ip,
-    });
+    await finishAudit(attempt.id, "user.invited", id);
     refreshUsers(id);
     return { id };
   },
@@ -245,29 +267,40 @@ export const deleteUser = safeAction(
     if (!user || user.role !== "admin" || id === user.id)
       throw new ForbiddenError();
     const authHeaders = await headers();
-    const target = await db.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(572931)`;
-      const current = await tx.user.findUnique({
-        where: { id },
-        select: { email: true, role: true, banned: true },
-      });
-      if (!current) throw new NotFoundError();
-      if (
-        current.role === "admin" &&
-        !current.banned &&
-        (await tx.user.count({ where: { role: "admin", banned: false } })) <= 1
-      )
-        throw new ConflictError();
-      await auth.api.removeUser({ headers: authHeaders, body: { userId: id } });
-      return current;
-    });
-    await writeAudit({
-      actorId: user.id,
-      action: "user.deleted",
-      target: { type: "user", id },
-      meta: { email: target.email, role: target.role },
-      ip,
-    });
+    const attempt = await db.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(572931)`;
+        const current = await tx.user.findUnique({
+          where: { id },
+          select: { email: true, role: true, banned: true },
+        });
+        if (!current) throw new NotFoundError();
+        if (
+          current.role === "admin" &&
+          !current.banned &&
+          (await tx.user.count({ where: { role: "admin", banned: false } })) <=
+            1
+        )
+          throw new ConflictError();
+        const attempt = await writeAudit({
+          actorId: user.id,
+          action: "user.delete_attempted",
+          target: { type: "user", id },
+          meta: { email: current.email, role: current.role },
+          ip,
+        });
+        // Admin removeUser deletes sessions before the user row and skips beforeDelete,
+        // so module cleanup (billing, notifications) runs first and blocks on failure.
+        await runUserDeleteHooks(id);
+        await auth.api.removeUser({
+          headers: authHeaders,
+          body: { userId: id },
+        });
+        return attempt;
+      },
+      { timeout: 60_000 },
+    );
+    await finishAudit(attempt.id, "user.deleted");
     refreshUsers(id);
     return { id };
   },

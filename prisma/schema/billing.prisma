@@ -6,6 +6,16 @@ model BillingCustomer {
   updatedAt        DateTime @updatedAt
 }
 
+model SubscriptionCheckout {
+  userId          String   @id
+  attemptId       String   @unique
+  priceId         String
+  stripeSessionId String?  @unique
+  url             String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
 model Subscription {
   id                   String   @id @default(cuid())
   stripeSubscriptionId String   @unique

@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ROUTES } from "@/lib/constants/routes";
 import {
   changeAccountPassword,
   deleteAccount,
@@ -379,26 +378,24 @@ function SessionsList({
             ))}
           </ul>
         )}
-        {!error && sessions.some((session) => !session.current) ? (
-          <Button
-            type="button"
-            variant="outline"
-            disabled={Boolean(pending)}
-            onClick={revokeOthers}
-          >
-            {pending === "all" ? "Revoking..." : "Revoke all other sessions"}
-          </Button>
-        ) : null}
+        <Button
+          type="button"
+          variant="outline"
+          disabled={Boolean(pending)}
+          onClick={revokeOthers}
+        >
+          {pending === "all" ? "Revoking..." : "Revoke all other sessions"}
+        </Button>
       </CardContent>
     </Card>
   );
 }
 
 function DeleteAccountForm() {
-  const router = useRouter();
   const [formError, setFormError] = useState("");
   const [pending, setPending] = useState(false);
   const [ready, setReady] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
   const form = useForm<DeleteValues>({
     resolver: zodResolver(deleteAccountSchema),
     defaultValues: { password: "" },
@@ -414,19 +411,23 @@ function DeleteAccountForm() {
         form.setError("password", { message: result.fieldErrors.password[0] });
       return;
     }
-    toast.success("Account deleted.");
-    router.replace(ROUTES.home);
-    router.refresh();
+    toast.success("Check your email to confirm account deletion.");
+    setReady(false);
+    setVerificationSent(true);
   }
   return (
     <Card className="border-destructive/30">
       <CardHeader>
         <CardTitle>Delete account</CardTitle>
         <CardDescription>
-          This permanently removes your account and signs you out.
+          Confirm the emailed link to permanently remove your account and sign
+          out.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {verificationSent ? (
+          <p role="status">Check your email to confirm account deletion.</p>
+        ) : null}
         <form
           onSubmit={form.handleSubmit(() => setReady(true))}
           noValidate
@@ -434,7 +435,7 @@ function DeleteAccountForm() {
         >
           <Field>
             <FieldLabel htmlFor="delete-password">
-              Confirm your password
+              Confirm your password if you use one
             </FieldLabel>
             <Input
               id="delete-password"
@@ -444,6 +445,10 @@ function DeleteAccountForm() {
               {...form.register("password")}
             />
             <FieldError errors={[form.formState.errors.password]} />
+            <FieldDescription>
+              If you sign in only with Google, leave this blank. Every deletion
+              requires email confirmation.
+            </FieldDescription>
           </Field>
           <Button type="submit" variant="outline" disabled={pending}>
             Continue to confirmation
@@ -462,7 +467,7 @@ function DeleteAccountForm() {
               </Button>
             }
             title="Delete your account?"
-            description="This action permanently removes your account. You cannot undo it."
+            description="A confirmation link will be emailed to you. Deletion is permanent after you confirm it."
             confirmLabel="Delete account"
             destructive
             onConfirm={confirmDelete}

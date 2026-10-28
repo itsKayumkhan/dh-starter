@@ -39,12 +39,12 @@ const users = [
 
 for (const seed of users) {
   const existing = await db.user.findUnique({ where: { email: seed.email } });
-  if (!existing)
-    await auth.api.signUpEmail({
-      body: { email: seed.email, password: seed.password, name: seed.name },
-    });
+  if (existing) continue;
+  const created = await auth.api.signUpEmail({
+    body: { email: seed.email, password: seed.password, name: seed.name },
+  });
   await db.user.update({
-    where: { email: seed.email },
+    where: { id: created.user.id },
     data: { role: seed.role, emailVerified: true },
   });
 }

@@ -16,7 +16,6 @@ export type InquiryEmailData = {
   message: string;
   source: string | null;
   status: string;
-  emailStatus: string;
   ip: string | null;
   userAgent: string | null;
   createdAt: Date;
@@ -32,7 +31,6 @@ export const previewInquiry = {
   message: "I would like to discuss a project.",
   source: CONTACT_ROUTES.contact,
   status: "NEW",
-  emailStatus: "PENDING",
   ip: null,
   userAgent: null,
   createdAt: new Date("2026-10-22T10:00:00.000Z"),
@@ -55,7 +53,6 @@ export function InquiryNotification({
     ["Message", inquiry.message],
     ["Page", inquiry.source ?? "Not provided"],
     ["Status", inquiry.status],
-    ["Email status", inquiry.emailStatus],
     ["IP", inquiry.ip ?? "Unavailable"],
     ["Browser", inquiry.userAgent ?? "Unavailable"],
     ["Received", inquiry.createdAt.toISOString()],

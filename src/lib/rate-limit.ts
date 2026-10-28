@@ -26,6 +26,14 @@ export async function checkRateLimit(
       RETURNING "count", "resetAt"`;
     const row = rows[0];
     if (!row) throw new RateLimitError();
+    await db.$executeRaw`
+      DELETE FROM "AppRateLimit" WHERE "id" IN (
+        SELECT "id" FROM "AppRateLimit"
+        WHERE "resetAt" < NOW()
+        ORDER BY "resetAt"
+        LIMIT 100
+        FOR UPDATE SKIP LOCKED
+      )`;
     return {
       allowed: row.count <= limit,
       remaining: Math.max(0, limit - row.count),

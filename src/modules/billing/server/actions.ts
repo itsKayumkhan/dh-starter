@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSiteSettings } from "@/lib/content/settings";
-import { db } from "@/lib/db";
 import { UnauthorizedError, ValidationError } from "@/lib/errors";
 import { safeAction } from "@/lib/safe-action";
 import { BILLING_ROUTES } from "@/modules/billing/routes";
@@ -16,11 +15,22 @@ import {
 } from "@/modules/billing/plans";
 import { getOrCreateCustomer } from "@/modules/billing/server/customers";
 import { getStripe } from "@/modules/billing/server/stripe";
+import { createSubscriptionCheckout } from "@/modules/billing/server/subscription-checkout";
 
 function checkoutUrl(url: string | null): string {
   if (!url) throw new ValidationError();
   const parsed = new URL(url);
   if (parsed.protocol !== "https:" || parsed.hostname !== "checkout.stripe.com")
+    throw new ValidationError();
+  return url;
+}
+
+function subscriptionUrl(url: string): string {
+  const parsed = new URL(url);
+  if (
+    parsed.protocol !== "https:" ||
+    !["checkout.stripe.com", "billing.stripe.com"].includes(parsed.hostname)
+  )
     throw new ValidationError();
   return url;
 }
@@ -54,26 +64,17 @@ const subscriptionCheckoutAction = safeAction(
       throw new ValidationError();
     const customer = await getOrCreateCustomer(user);
     const site = await getSiteSettings();
-    const active = await db.subscription.findFirst({
-      where: {
-        userId: user.id,
-        status: { in: ["active", "trialing", "past_due"] },
-      },
-      select: { id: true },
-    });
-    if (active) return { url: await createPortalUrl(customer) };
-    const session = await getStripe().checkout.sessions.create({
-      mode: "subscription",
-      customer,
-      client_reference_id: user.id,
-      line_items: [{ price: plan.stripePriceId, quantity: 1 }],
-      metadata: { userId: user.id, planId: plan.id },
-      subscription_data: { metadata: { userId: user.id, planId: plan.id } },
-      success_url: new URL(BILLING_ROUTES.success, site.url).toString(),
-      cancel_url: new URL(BILLING_ROUTES.cancel, site.url).toString(),
+    const url = await createSubscriptionCheckout({
+      userId: user.id,
+      customerId: customer,
+      priceId: plan.stripePriceId,
+      planId: plan.id,
+      successUrl: new URL(BILLING_ROUTES.success, site.url).toString(),
+      cancelUrl: new URL(BILLING_ROUTES.cancel, site.url).toString(),
+      portalUrl: () => createPortalUrl(customer),
     });
     revalidatePath(BILLING_ROUTES.dashboard);
-    return { url: checkoutUrl(session.url) };
+    return { url: subscriptionUrl(url) };
   },
 );
 

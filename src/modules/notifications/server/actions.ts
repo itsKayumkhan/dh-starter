@@ -5,7 +5,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { writeAudit } from "@/lib/audit";
 import { safeAction } from "@/lib/safe-action";
-import { NotFoundError, UnauthorizedError } from "@/lib/errors";
+import { NotFoundError, UnauthorizedError, ConflictError } from "@/lib/errors";
 import { NOTIFICATION_ROUTES } from "@/modules/notifications/routes";
 import {
   adminSendSchema,
@@ -14,7 +14,12 @@ import {
 } from "@/modules/notifications/schemas/notification";
 import { notify } from "@/modules/notifications/server/notify";
 import {
-  getRecipientBatch,
+  assertTargetAllowed,
+  getOrCreateBroadcast,
+  MAX_BROADCAST_RECIPIENTS,
+} from "@/modules/notifications/server/broadcast";
+import {
+  getBroadcastRecipients,
   userExists,
 } from "@/modules/notifications/server/queries";
 
@@ -83,49 +88,36 @@ const adminSendAction = safeAction(
   },
   async (input, { user, ip }) => {
     if (!user) throw new UnauthorizedError();
+    assertTargetAllowed(user, input);
+    const broadcast = await getOrCreateBroadcast(input, user.id, async () => {
+      if (input.target === "user") {
+        const recipient = await userExists(input.userId ?? "");
+        if (!recipient || recipient.banned) throw new NotFoundError();
+        assertTargetAllowed(user, input, recipient.role);
+        return [recipient.id];
+      }
+      const recipients = await getBroadcastRecipients({
+        ...(input.target === "role" && input.role ? { role: input.role } : {}),
+        limit: MAX_BROADCAST_RECIPIENTS,
+      });
+      if (recipients.length > MAX_BROADCAST_RECIPIENTS)
+        throw new ConflictError();
+      return recipients.map((recipient) => recipient.id);
+    });
+    if (input.target === "user") {
+      const recipient = await userExists(input.userId ?? "");
+      if (!recipient || recipient.banned) throw new NotFoundError();
+      assertTargetAllowed(user, input, recipient.role);
+    }
     const message = {
       type: "admin",
       title: input.title,
       body: input.body,
       ...(input.href ? { href: input.href } : {}),
     };
-    const totals = { created: 0, emailed: 0, emailFailed: 0 };
-    if (input.target === "user") {
-      const recipient = await userExists(input.userId ?? "");
-      if (!recipient || recipient.banned) throw new NotFoundError();
-      const result = await notify(recipient.id, message, {
-        email: input.email,
-      });
-      totals.created += result.created;
-      totals.emailed += result.emailed;
-      totals.emailFailed += result.emailFailed;
-    } else {
-      let after: string | undefined;
-      for (;;) {
-        const batch = await getRecipientBatch({
-          ...(input.target === "role" && input.role
-            ? { role: input.role }
-            : {}),
-          ...(after ? { after } : {}),
-        });
-        if (batch.length === 0) break;
-        const result = await notify(
-          batch.map((recipient) => recipient.id),
-          message,
-          {
-            email: input.email,
-          },
-        );
-        totals.created += result.created;
-        totals.emailed += result.emailed;
-        totals.emailFailed += result.emailFailed;
-        after = batch[batch.length - 1]?.id;
-        if (batch.length < 500) break;
-      }
-    }
     await writeAudit({
       actorId: user.id,
-      action: "notification.send",
+      action: "notification.send_requested",
       target: {
         type: input.target,
         id:
@@ -136,15 +128,19 @@ const adminSendAction = safeAction(
               : undefined,
       },
       meta: {
-        created: totals.created,
-        emailed: totals.emailed,
-        emailFailed: totals.emailFailed,
+        recipients: broadcast.recipientIds.length,
         email: input.email,
+        broadcastId: input.broadcastId,
+        retry: !broadcast.created,
       },
       ip,
     });
+    const totals = await notify(broadcast.recipientIds, message, {
+      email: input.email,
+      broadcastId: input.broadcastId,
+    });
     revalidatePath(NOTIFICATION_ROUTES.list);
-    return totals;
+    return { ...totals, broadcastId: input.broadcastId };
   },
 );
 

@@ -38,13 +38,18 @@ function fieldError(errors: unknown, path: string): string | undefined {
 export function BlockForm({
   blockKey,
   initialValue,
+  initialRevision,
+  editable = true,
 }: {
   blockKey: ContentKey;
   initialValue: Record<string, unknown>;
+  initialRevision: string | null;
+  editable?: boolean;
 }) {
   const router = useRouter();
   const block = contentRegistry[blockKey];
   const [message, setMessage] = useState("");
+  const [revision, setRevision] = useState(initialRevision);
   const resolverSchema = z
     .object({ value: z.record(z.string(), z.unknown()) })
     .superRefine((input, ctx) => {
@@ -114,20 +119,22 @@ export function BlockForm({
   }
 
   const submit = form.handleSubmit(async ({ value }) => {
+    if (!editable) return;
     setMessage("");
-    const result = await saveBlock({ key: blockKey, value });
+    const result = await saveBlock({ key: blockKey, value, revision });
     if (!result.ok) {
       setMessage(result.error);
       return;
     }
     toast.success("Content saved");
+    setRevision(result.data.revision);
     form.reset({ value });
     router.refresh();
   });
 
   async function reset() {
     setMessage("");
-    const result = await resetBlock({ key: blockKey });
+    const result = await resetBlock({ key: blockKey, revision });
     if (!result.ok) {
       setMessage(result.error);
       return;
@@ -135,12 +142,19 @@ export function BlockForm({
     form.reset({
       value: structuredClone(block.defaultValue) as Record<string, unknown>,
     });
+    setRevision(null);
     toast.success("Default content restored");
     router.refresh();
   }
 
   return (
     <form onSubmit={submit} noValidate className="space-y-6">
+      {!editable ? (
+        <p role="alert">
+          Stored content is invalid. Reset to default is available; saving is
+          disabled.
+        </p>
+      ) : null}
       {block.fields.map((field) => {
         if (field.type !== "list") return renderField(field, field.name);
         const items = Array.isArray(preview[field.name])
@@ -227,7 +241,10 @@ export function BlockForm({
         </p>
       ) : null}
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" disabled={form.formState.isSubmitting}>
+        <Button
+          type="submit"
+          disabled={!editable || form.formState.isSubmitting}
+        >
           Save block
         </Button>
         <Button

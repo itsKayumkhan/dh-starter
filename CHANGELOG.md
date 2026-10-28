@@ -2,6 +2,22 @@
 
 All notable changes to dh-starter. Versions follow semver (see `docs/STARTER_SYNC.md`).
 
+## 0.4.0 (2026-10-28)
+
+Security audit fixes (12-area audit; 1 Critical, 21 High addressed). Migration: `20261028120000_security_audit` (backfills `Inquiry` email statuses).
+
+- Seed refuses production or remote databases and never changes existing accounts.
+- Client IP comes only from trusted proxy hops (`TRUSTED_PROXY_HOPS`, default 0), so forwarded headers cannot bypass rate limits.
+- Password reset revokes all sessions; public Better Auth admin and direct deletion endpoints return 404; account deletion needs email confirmation (works for Google-only users); production cookies are always Secure; profile updates are validated.
+- Account deletion runs module cleanup first (`src/config/module-lifecycle.ts`, `onUserDelete` in billing and notifications): active Stripe subscriptions are canceled, notifications removed; a failing hook blocks deletion.
+- Billing: one checkout reservation per user, webhook retries are never lost, older events cannot restore stale state, refunds cannot be overwritten, webhook body size cap.
+- Uploads: size enforced server-side, pending upload tracking with a cleanup route, PDF structure checks, origin check on signing.
+- CMS: database failures are never cached and editors cannot save fallback data; strict validation of email style values; optimistic concurrency.
+- Notifications: idempotent broadcasts with a recipient cap; staff cannot target admins or everyone; per-user summary rate limit. Contact: single-use form tokens, separate email statuses.
+- Admin: mutations and audit entries in one transaction; user detail loads active sessions only; unique account identity and new indexes.
+- Platform: security headers (CSP, HSTS in production, frame and content-type protections), SMTP TLS and timeouts, rate-limit row cleanup, redacted dev email logs.
+- Tooling: module-remove validates package names and owned paths, no shell; boundary checker resolves relative imports and honors dependsOn; db:dev removes only stale locks; CI runs Playwright against a local Postgres; e2e refuses non-local databases and CMS e2e restores content. `npm audit fix` applied.
+
 ## 0.3.0 (2026-10-23)
 
 - Email layout visuals (font, colors, button radius) come from site settings and are editable in the CMS.

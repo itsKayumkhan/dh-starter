@@ -30,18 +30,19 @@ Next.js 16 differs from older versions: check `node_modules/next/dist/docs/` bef
 | Core helpers: env, db, auth, errors, safe actions, rate limit, audit, logger, email, seo, format, pagination | `src/lib/**`                                                                                                     |
 | Brand and project defaults                                                                                   | `src/config/site.ts` (defaults only; read them through `getSiteSettings()`)                                      |
 | Editable content block registry                                                                              | `src/config/content.ts` (key, Zod schema, default, editor fields)                                                |
-| Installed module registry                                                                                    | `src/config/modules.ts` (the only core file that may import a module)                                            |
+| Installed module registry                                                                                    | `src/config/modules.ts` and `src/config/module-lifecycle.ts` (the only core files that may import a module)      |
 | Removable feature                                                                                            | `src/modules/<id>/` with `module.json`, `module.ts`, `env.ts`, `server/`, `components/`, `schemas/`, `README.md` |
 | Module tables                                                                                                | `prisma/schema/<id>.prisma` (one file per module)                                                                |
 | Project-specific feature that is not reusable                                                                | `src/features/<name>/`                                                                                           |
 
 ## 3. Module rules (the starter's whole point)
 
-- **Core never imports a module.** Only `src/config/modules.ts` links them. `npm run check:boundaries` enforces this and runs in CI.
+- **Core never imports a module.** Only `src/config/modules.ts` (nav, header items, public routes) and `src/config/module-lifecycle.ts` (user deletion cleanup) link them. `npm run check:boundaries` enforces this and runs in CI.
 - A module imports core only. Importing another module is allowed only if it is listed in `dependsOn` in its `module.json`.
 - Every path a module adds (pages, API routes, e2e test, prisma file) goes in its `module.json`, so `npm run module:remove <id>` deletes everything.
 - A module's env keys are validated lazily in `src/modules/<id>/env.ts`; a project without the module never needs them. Add them to `.env.example` under `# --- <id> module ---`.
-- Registry lines in `src/config/modules.ts` end with `// module:<id>`.
+- Registry lines in `src/config/modules.ts` and `src/config/module-lifecycle.ts` end with `// module:<id>`.
+- A module that stores user data exports `onUserDelete(userId)` from `src/modules/<id>/lifecycle.ts` and registers it in `src/config/module-lifecycle.ts`. Users are deleted only through Better Auth (self-service) or the admin delete action; both run these hooks before anything is deleted, and a failing hook blocks the deletion.
 - No circular imports, including type-only ones (`npm run check:circular`). Put shared types in their own file.
 - A new module is created with `/new-module`.
 

@@ -16,6 +16,8 @@ function describeIssue(issue: ZodIssue): string {
     if (issue.message === "Required for SMTP") return "is required for SMTP";
     if (issue.message === "Both Google credentials are required")
       return "must be set with GOOGLE_CLIENT_ID";
+    if (issue.message === "Both SMTP credentials are required")
+      return "must be set with SMTP_USER";
   }
   return "is invalid";
 }

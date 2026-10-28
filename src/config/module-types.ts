@@ -15,4 +15,5 @@ export type AppModule = {
   name: string;
   HeaderItem?: ComponentType;
   nav: ModuleNavItem[];
+  publicRoutes?: string[];
 };

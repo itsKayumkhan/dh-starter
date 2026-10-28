@@ -1,5 +1,6 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import { unstable_rethrow } from "next/navigation";
 import {
   settingSchemas,
   settingsDefaults,
@@ -23,15 +24,20 @@ export function mergeSettings(
   return result;
 }
 
-export async function getSiteSettings(): Promise<SiteSettings> {
+export async function readSiteSettings(): Promise<SiteSettings> {
   "use cache";
   cacheLife("hours");
   cacheTag("site-settings");
+  return mergeSettings(
+    await db.siteSetting.findMany({ select: { key: true, value: true } }),
+  );
+}
+
+export async function getSiteSettings(): Promise<SiteSettings> {
   try {
-    return mergeSettings(
-      await db.siteSetting.findMany({ select: { key: true, value: true } }),
-    );
+    return await readSiteSettings();
   } catch (error) {
+    unstable_rethrow(error);
     logger.warn("Site settings unavailable, using defaults", { error });
     return structuredClone(settingsDefaults);
   }

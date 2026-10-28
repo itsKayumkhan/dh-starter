@@ -7,11 +7,19 @@ model Inquiry {
   message     String
   source      String?
   status      String   @default("new")
-  emailStatus String   @default("pending")
+  notificationEmailStatus String @default("pending")
+  autoReplyEmailStatus    String @default("pending")
   ip          String?
   userAgent   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([status, createdAt])
+}
+
+model ContactFormTokenClaim {
+  tokenHash String @id
+  expiresAt DateTime
+
+  @@index([expiresAt])
 }

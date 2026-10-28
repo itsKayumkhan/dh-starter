@@ -231,27 +231,44 @@ function atPath(value: object, path: string): string | number {
     ) as string | number;
 }
 
-export function SettingsForm({ initialValue }: { initialValue: SiteSettings }) {
+export function SettingsForm({
+  initialValue,
+  initialRevision,
+  editable = true,
+}: {
+  initialValue: SiteSettings;
+  initialRevision: string;
+  editable?: boolean;
+}) {
   const router = useRouter();
   const [message, setMessage] = useState("");
+  const [revision, setRevision] = useState(initialRevision);
   const form = useForm<SiteSettings>({
     resolver: zodResolver(settingsSchema),
     defaultValues: initialValue,
   });
   const submit = form.handleSubmit(async (value) => {
+    if (!editable) return;
     setMessage("");
-    const result = await saveSettings(value);
+    const result = await saveSettings({ value, revision });
     if (!result.ok) {
       setMessage(result.error);
       return;
     }
     toast.success("Site settings saved");
+    setRevision(result.data.revision);
     form.reset(value);
     router.refresh();
   });
 
   return (
     <form onSubmit={submit} noValidate className="space-y-8">
+      {!editable ? (
+        <p role="alert">
+          Stored settings are invalid. Saving is disabled until the data is
+          repaired.
+        </p>
+      ) : null}
       {["Brand", "Colors", "Email", "Contact", "Social", "SEO"].map((group) => (
         <section key={group} className="space-y-4 rounded-lg border p-5">
           <h2 className="text-lg font-semibold">{group}</h2>
@@ -329,7 +346,7 @@ export function SettingsForm({ initialValue }: { initialValue: SiteSettings }) {
           {message}
         </p>
       ) : null}
-      <Button type="submit" disabled={form.formState.isSubmitting}>
+      <Button type="submit" disabled={!editable || form.formState.isSubmitting}>
         Save settings
       </Button>
     </form>

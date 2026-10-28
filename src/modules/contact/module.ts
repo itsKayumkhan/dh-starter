@@ -5,6 +5,7 @@ import { CONTACT_ROUTES } from "@/modules/contact/routes";
 export const contactModule: AppModule = {
   id: "contact",
   name: "Contact form and inquiries",
+  publicRoutes: ["/contact"],
   nav: [
     {
       title: "Inquiries",

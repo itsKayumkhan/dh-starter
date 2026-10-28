@@ -1,5 +1,6 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import { unstable_rethrow } from "next/navigation";
 import {
   contentRegistry,
   type ContentKey,
@@ -20,19 +21,26 @@ export function parseContent<K extends ContentKey>(
   return structuredClone(block.defaultValue) as ContentValue<K>;
 }
 
-export async function getContent<K extends ContentKey>(
+export async function readContent<K extends ContentKey>(
   key: K,
 ): Promise<ContentValue<K>> {
   "use cache";
   cacheLife("hours");
   cacheTag(`content:${key}`);
+  const row = await db.contentBlock.findUnique({
+    where: { key },
+    select: { value: true },
+  });
+  return parseContent(key, row?.value);
+}
+
+export async function getContent<K extends ContentKey>(
+  key: K,
+): Promise<ContentValue<K>> {
   try {
-    const row = await db.contentBlock.findUnique({
-      where: { key },
-      select: { value: true },
-    });
-    return parseContent(key, row?.value);
+    return await readContent(key);
   } catch (error) {
+    unstable_rethrow(error);
     logger.warn("Content block unavailable, using default", { key, error });
     return parseContent(key, null);
   }

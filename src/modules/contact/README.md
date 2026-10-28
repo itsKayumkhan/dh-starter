@@ -19,6 +19,6 @@ Projects can render their own form markup with `useContactForm` from `@/modules/
 
 The public page is `/contact`. Staff and admin users with `inquiries:read` can open `/admin/inquiries`, search, filter by status, review messages, change status, and retry a failed business notification. Status changes and successful retries write audit entries. Contact submission is limited to five attempts per IP every ten minutes. The form checks an empty honeypot and requires at least three seconds between token issuance and submission.
 
-The action saves the inquiry before sending email. A failed business notification or auto reply sets `emailStatus` to `failed` and leaves the inquiry in the inbox. The retry control sends the business notification only. If the auto reply failed, use the sender email address to follow up manually.
+The action saves the inquiry before sending email. The team notification and sender auto-reply have separate delivery statuses. A failed channel remains visible in the inbox and can be retried independently. Contact form tokens expire after fifteen minutes and are claimed once in the database.
 
 Run the unit tests with `npx vitest run src/modules/contact`. The Playwright flow needs a running app, database and core email env keys. It skips when the required env keys are absent.

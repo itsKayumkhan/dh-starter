@@ -11,8 +11,8 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   use: { baseURL },
   webServer: {
-    command: "npm run dev",
+    command: process.env.CI ? "npm run start" : "npm run dev",
     url: baseURL,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
   },
 });

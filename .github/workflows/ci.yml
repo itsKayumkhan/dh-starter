@@ -4,7 +4,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/dummy
+      DATABASE_URL: postgres://postgres:postgres@localhost:5433/dh_starter_e2e?sslmode=disable
       BETTER_AUTH_SECRET: ci-dummy-secret-please-replace-in-production-12345
       BETTER_AUTH_URL: http://localhost:3000
       NEXT_PUBLIC_APP_URL: http://localhost:3000
@@ -24,4 +24,15 @@ jobs:
       - run: npm run check:boundaries
       - run: npm run check:circular
       - run: npm run test
-      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Build and run browser tests against local Postgres
+        shell: bash
+        run: |
+          npm run db:dev > "$RUNNER_TEMP/db-dev.log" 2>&1 &
+          db_pid=$!
+          trap 'kill "$db_pid" 2>/dev/null || true; cat "$RUNNER_TEMP/db-dev.log"' EXIT
+          npx tsx scripts/wait-for-db.mts
+          npx prisma migrate deploy
+          npm run db:seed
+          npm run build
+          npm run test:e2e

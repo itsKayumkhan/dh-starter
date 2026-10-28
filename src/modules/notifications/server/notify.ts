@@ -12,14 +12,16 @@ import { notificationInputSchema } from "@/modules/notifications/schemas/notific
 
 const userIdsSchema = z.union([
   z.string().min(1).max(255),
-  z.array(z.string().min(1).max(255)).max(100_000),
+  z.array(z.string().min(1).max(255)).max(200),
 ]);
-const optionsSchema = z.object({ email: z.boolean().optional() }).optional();
+const optionsSchema = z
+  .object({ email: z.boolean().optional(), broadcastId: z.uuid().optional() })
+  .optional();
 
 export async function notify(
   userIds: string | string[],
   input: { type: string; title: string; body: string; href?: string },
-  opts?: { email?: boolean },
+  opts?: { email?: boolean; broadcastId?: string },
 ): Promise<{ created: number; emailed: number; emailFailed: number }> {
   const ids = [...new Set([userIdsSchema.parse(userIds)].flat())];
   const data = notificationInputSchema.parse(input);
@@ -30,37 +32,58 @@ export async function notify(
   let emailed = 0;
   let emailFailed = 0;
   const site = options?.email ? await getSiteSettings() : null;
-  for (let offset = 0; offset < ids.length; offset += 500) {
+  for (let offset = 0; offset < ids.length; offset += 50) {
     const recipients = await db.user.findMany({
-      where: { id: { in: ids.slice(offset, offset + 500) }, banned: false },
+      where: { id: { in: ids.slice(offset, offset + 50) }, banned: false },
       select: { id: true, email: true },
     });
     if (recipients.length === 0) continue;
-    const result = await db.notification.createMany({
-      data: recipients.map((recipient) => ({ userId: recipient.id, ...data })),
+    const inserted = await db.notification.createManyAndReturn({
+      data: recipients.map((recipient) => ({
+        userId: recipient.id,
+        ...data,
+        ...(options?.broadcastId ? { broadcastId: options.broadcastId } : {}),
+      })),
+      skipDuplicates: Boolean(options?.broadcastId),
+      select: { userId: true },
     });
-    created += result.count;
+    created += inserted.length;
     if (options?.email) {
-      for (const recipient of recipients) {
-        try {
-          await sendEmail({
-            to: recipient.email,
-            subject: data.title,
-            react: createElement(Notification, {
-              title: data.title,
-              body: data.body,
-              ...(data.href
-                ? {
-                    url: new URL(data.href, site?.url).toString(),
-                    cta: "View notification",
-                  }
-                : {}),
-            }),
-          });
-          emailed += 1;
-        } catch (error) {
-          emailFailed += 1;
-          logger.error("Notification email failed", { error });
+      const insertedIds = new Set(inserted.map((item) => item.userId));
+      const emailRecipients = recipients.filter((item) =>
+        insertedIds.has(item.id),
+      );
+      for (
+        let emailOffset = 0;
+        emailOffset < emailRecipients.length;
+        emailOffset += 10
+      ) {
+        const results = await Promise.allSettled(
+          emailRecipients
+            .slice(emailOffset, emailOffset + 10)
+            .map((recipient) =>
+              sendEmail({
+                to: recipient.email,
+                subject: data.title,
+                react: createElement(Notification, {
+                  title: data.title,
+                  body: data.body,
+                  ...(data.href
+                    ? {
+                        url: new URL(data.href, site?.url).toString(),
+                        cta: "View notification",
+                      }
+                    : {}),
+                }),
+              }),
+            ),
+        );
+        for (const result of results) {
+          if (result.status === "fulfilled") emailed += 1;
+          else {
+            emailFailed += 1;
+            logger.error("Notification email failed", { error: result.reason });
+          }
         }
       }
     }

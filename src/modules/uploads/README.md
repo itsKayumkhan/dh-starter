@@ -1,6 +1,6 @@
 # Cloudinary uploads
 
-This module signs browser uploads for three folders: `avatars` (images, 2 MB), `media` (images, 10 MB), and `documents` (PDF, 10 MB). Media and documents require `media:write`; avatars require a signed-in user. The server verifies every uploaded asset with Cloudinary's Admin API before creating a `Media` row.
+This module accepts bounded uploads for three folders: `avatars` (images, 2 MB), `media` (images, 10 MB), and `documents` (PDF, 10 MB). Media and documents require `media:write`; avatars require a signed-in user. The server checks the actual bytes and verifies every uploaded asset with Cloudinary's Admin API before creating a `Media` row.
 
 ## Setup
 
@@ -9,9 +9,10 @@ Set these keys in the deployment environment. They are parsed only when uploads 
 | Key                                 | Purpose                                                  |
 | ----------------------------------- | -------------------------------------------------------- |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name                                    |
-| `CLOUDINARY_API_KEY`                | Signed upload API key                                    |
-| `CLOUDINARY_API_SECRET`             | Signature and upload ticket secret                       |
+| `CLOUDINARY_API_KEY`                | Cloudinary server API key                                |
+| `CLOUDINARY_API_SECRET`             | Cloudinary API and upload ticket secret                  |
 | `CLOUDINARY_FOLDER_PREFIX`          | App-owned Cloudinary folder prefix, such as `dh-starter` |
+| `UPLOADS_CRON_SECRET`               | Bearer secret for the upload cleanup route               |
 
 Generate the Prisma client and apply the uploads schema through the project's normal migration process. Register `uploadsModule` in `src/config/modules.ts` with `// module:uploads` markers so the admin navigation appears and module removal works.
 
@@ -19,7 +20,9 @@ Generate the Prisma client and apply the uploads schema through the project's no
 
 Use `ImageUpload` with a folder, a `MediaDto | null` value, and an `onChange` callback. Replacing or removing the selection changes the field only; it does not delete previously saved assets. Use the media library delete control or `deleteMedia` for permanent removal. `MediaPicker` selects existing images. `MediaImage` renders managed images with `CldImage` and a document fallback.
 
-The browser requests `POST /api/uploads/sign`, uploads directly to Cloudinary with the signed parameters, then calls `saveMedia`. The server checks the signed upload ticket, folder prefix, resource type, format, byte size, and Cloudinary asset metadata. There is no unsigned upload preset.
+The browser requests `POST /api/uploads/sign`, which creates a pending upload intent and returns an app upload ticket. The browser sends the file to `POST /api/uploads/file`. The app counts bytes before forwarding the file to Cloudinary, checks document structure, then verifies the stored resource type, format and byte size. The browser calls `saveMedia` to create the library row and audit record in one transaction. Cloudinary credentials never reach the browser.
+
+`GET` and `POST /api/uploads/cleanup` require `Authorization: Bearer <UPLOADS_CRON_SECRET>`. They remove expired pending assets across Cloudinary resource types and retry pending media deletions. The repository does not configure a scheduler for this route. A pending upload expires after two hours.
 
 The admin library is at `/admin/media`. It supports search, folder filters, and server pagination. `GET /api/uploads/media` supplies picker pages to staff and admins.
 
@@ -27,4 +30,4 @@ To swap providers, implement the `Storage` interface and change the exported imp
 
 ## Removal
 
-The manifest owns the module, uploads API routes, admin page, and Prisma model. Run the module removal script after dependent project features are removed, then apply a database migration that drops `Media`.
+The manifest owns the module, uploads API routes, admin page, and Prisma models. Run the module removal script after dependent project features are removed, then apply a database migration that drops `Media` and `PendingUpload`.

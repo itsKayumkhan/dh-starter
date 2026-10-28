@@ -32,6 +32,10 @@ const serverEnvSchema = z
         .transform((value) => value === "true")
         .optional(),
     ),
+    TRUSTED_PROXY_HOPS: z.preprocess(
+      optionalEnv,
+      z.coerce.number().int().min(0).max(10).default(0),
+    ),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -48,6 +52,12 @@ const serverEnvSchema = z
         code: "custom",
         path: ["SMTP_HOST"],
         message: "Required for SMTP",
+      });
+    if (Boolean(value.SMTP_USER) !== Boolean(value.SMTP_PASS))
+      ctx.addIssue({
+        code: "custom",
+        path: ["SMTP_PASS"],
+        message: "Both SMTP credentials are required",
       });
     if (Boolean(value.GOOGLE_CLIENT_ID) !== Boolean(value.GOOGLE_CLIENT_SECRET))
       ctx.addIssue({

@@ -23,11 +23,7 @@ import {
 } from "@/modules/uploads/upload-rules";
 
 const signedSchema = z.object({
-  cloudName: z.string(),
-  apiKey: z.string(),
-  uploadUrl: z.url().startsWith("https://"),
-  params: z.record(z.string(), z.string()),
-  signature: z.string(),
+  uploadUrl: z.string().startsWith("/api/uploads/"),
   publicId: z.string(),
   folder: z.string(),
   ticket: z.string(),
@@ -44,6 +40,10 @@ function uploadDirect(
     const request = new XMLHttpRequest();
     onRequest(request);
     request.open("POST", signed.uploadUrl);
+    request.setRequestHeader("Content-Type", file.type);
+    request.setRequestHeader("X-Upload-Folder", signed.folder);
+    request.setRequestHeader("X-Upload-Public-Id", signed.publicId);
+    request.setRequestHeader("X-Upload-Ticket", signed.ticket);
     request.upload.onprogress = (event) => {
       if (event.lengthComputable)
         onProgress(Math.round((event.loaded / event.total) * 100));
@@ -60,16 +60,10 @@ function uploadDirect(
       })();
       const parsed = cloudinaryResultSchema.safeParse(result);
       if (request.status < 200 || request.status >= 300 || !parsed.success)
-        reject(new Error("Cloudinary rejected the upload."));
+        reject(new Error("Upload was rejected."));
       else resolve(parsed.data.public_id);
     };
-    const body = new FormData();
-    for (const [key, value] of Object.entries(signed.params))
-      body.append(key, value);
-    body.append("api_key", signed.apiKey);
-    body.append("signature", signed.signature);
-    body.append("file", file);
-    request.send(body);
+    request.send(file);
   });
 }
 
@@ -176,7 +170,7 @@ export function ImageUpload({
         }}
       />
       <div
-        className={`focus-within:ring-ring rounded-xl border border-dashed p-4 motion-safe:transition-colors focus-within:ring-2 ${dragging ? "bg-muted" : "bg-card"}`}
+        className={`focus-within:ring-ring rounded-xl border border-dashed p-4 focus-within:ring-2 motion-safe:transition-colors ${dragging ? "bg-muted" : "bg-card"}`}
         onDragEnter={(event) => {
           event.preventDefault();
           setDragging(true);

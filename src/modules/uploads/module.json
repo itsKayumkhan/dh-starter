@@ -1,25 +1,21 @@
 {
   "id": "uploads",
   "name": "Cloudinary uploads",
-  "description": "Signed direct uploads and a managed media library",
+  "description": "Bounded uploads and a managed media library",
   "paths": [
     "src/modules/uploads",
     "src/app/api/uploads",
     "src/app/(dashboard)/admin/media",
     "tests/e2e/uploads.spec.ts"
   ],
-  "prismaFiles": [
-    "prisma/schema/uploads.prisma"
-  ],
-  "packages": [
-    "next-cloudinary",
-    "cloudinary"
-  ],
+  "prismaFiles": ["prisma/schema/uploads.prisma"],
+  "packages": ["next-cloudinary", "cloudinary"],
   "envKeys": [
     "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME",
     "CLOUDINARY_API_KEY",
     "CLOUDINARY_API_SECRET",
-    "CLOUDINARY_FOLDER_PREFIX"
+    "CLOUDINARY_FOLDER_PREFIX",
+    "UPLOADS_CRON_SECRET"
   ],
   "dependsOn": []
 }

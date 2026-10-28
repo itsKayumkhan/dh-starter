@@ -1,19 +1,13 @@
 import { z } from "zod";
 import { passwordSchema } from "@/components/auth/schemas";
+import {
+  profileNameSchema,
+  profileImageSchema,
+} from "@/lib/auth/profile-rules";
 
 export const profileSchema = z.object({
-  name: z.string().trim().min(2, "Enter at least 2 characters").max(80),
-  imageUrl: z
-    .string()
-    .trim()
-    .max(2048)
-    .refine(
-      (value) =>
-        value === "" ||
-        (z.url().safeParse(value).success &&
-          new URL(value).protocol === "https:"),
-      "Use a secure HTTPS image URL",
-    ),
+  name: profileNameSchema,
+  imageUrl: profileImageSchema,
 });
 
 export const changePasswordSchema = z
@@ -29,7 +23,7 @@ export const changePasswordSchema = z
   });
 
 export const deleteAccountSchema = z.object({
-  password: z.string().min(1, "Enter your password"),
+  password: z.string(),
 });
 export const revokeSessionSchema = z.object({ id: z.string().min(1).max(128) });
 export const emptySchema = z.object({});

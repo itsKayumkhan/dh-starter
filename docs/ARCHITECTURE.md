@@ -18,7 +18,7 @@ Reusable Next.js full-stack starter for Digital Heroes projects. Clone it, set e
 | Uploads             | Cloudinary signed uploads (next-cloudinary)                                                                                                                                                                                          |
 | Payments            | Stripe (Checkout, subscriptions, customer portal, idempotent webhooks)                                                                                                                                                               |
 | Tests               | Vitest (unit), Playwright (e2e)                                                                                                                                                                                                      |
-| CI                  | GitHub Actions: lint, typecheck, test, build                                                                                                                                                                                         |
+| CI                  | GitHub Actions: lint, typecheck, boundary and cycle checks, unit tests, then a local Postgres (db:dev), migrate, seed, build and Playwright e2e                                                                                      |
 
 ## Core vs modules
 
@@ -50,7 +50,8 @@ src/
     sitemap.ts, robots.ts
   config/
     site.ts                brand: name, url, description, logo, colors, support email, address
-    modules.ts             the ONLY place that lists installed modules (nav items etc.)
+    modules.ts             lists installed modules (nav items, header items, public routes)
+    module-lifecycle.ts    user deletion hooks of installed modules
   lib/
     env/                   server.ts (server-only), client.ts (NEXT_PUBLIC_)
     constants/             routes.ts, messages.ts, app.ts
@@ -110,7 +111,7 @@ Module rules:
 
 - A module imports from core (`@/lib`, `@/components`, `@/config/site`) and never from another module, unless listed in `dependsOn`.
 - A module's env keys are validated inside `src/modules/<id>/env.ts`, lazily, so a project without that module never needs those keys.
-- Core never imports a module. The only link is `src/config/modules.ts`.
+- Core never imports a module. The only links are `src/config/modules.ts` and `src/config/module-lifecycle.ts`.
 
 ## Swappable providers (no lock-in)
 

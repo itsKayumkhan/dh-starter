@@ -3,6 +3,9 @@ import { contentRegistry } from "@/config/content";
 import { settingsDefaults } from "@/config/settings";
 import { can } from "@/lib/auth/permissions";
 import { ForbiddenError } from "@/lib/errors";
+import { blockRevision, settingsRevision } from "@/modules/cms/server/revision";
+
+const emptyRevision = settingsRevision([]);
 
 const {
   assertPermission,
@@ -56,7 +59,9 @@ beforeEach(() => {
   blockRow.mockResolvedValue(null);
   settingUpsert.mockResolvedValue({});
   settingDelete.mockResolvedValue({ count: 1 });
-  blockUpsert.mockResolvedValue({});
+  blockUpsert.mockResolvedValue({
+    updatedAt: new Date("2026-10-28T00:00:00.000Z"),
+  });
   blockDelete.mockResolvedValue({ count: 1 });
   auditCreate.mockResolvedValue({});
   transaction.mockImplementation(
@@ -79,7 +84,10 @@ beforeEach(() => {
 
 describe("CMS action permissions", () => {
   it("checks settings permission before touching the database", async () => {
-    const result = await saveSettings(settingsDefaults);
+    const result = await saveSettings({
+      value: settingsDefaults,
+      revision: emptyRevision,
+    });
     expect(result.ok).toBe(false);
     expect(assertPermission).toHaveBeenCalledWith("settings:write");
     expect(transaction).not.toHaveBeenCalled();
@@ -89,8 +97,9 @@ describe("CMS action permissions", () => {
     const saved = await saveBlock({
       key,
       value: contentRegistry[key].defaultValue,
+      revision: null,
     });
-    const reset = await resetBlock({ key });
+    const reset = await resetBlock({ key, revision: null });
     expect(saved.ok).toBe(false);
     expect(reset.ok).toBe(false);
     expect(assertPermission).toHaveBeenNthCalledWith(1, "content:write");
@@ -100,10 +109,13 @@ describe("CMS action permissions", () => {
   it("writes settings and audit together before invalidating the settings tag", async () => {
     assertPermission.mockResolvedValue({ id: "admin-1", role: "admin" });
     const result = await saveSettings({
-      ...settingsDefaults,
-      name: "Edited Brand",
+      value: { ...settingsDefaults, name: "Edited Brand" },
+      revision: emptyRevision,
     });
-    expect(result).toEqual({ ok: true, data: { changedKeys: ["name"] } });
+    expect(result).toEqual({
+      ok: true,
+      data: { changedKeys: ["name"], revision: emptyRevision },
+    });
     expect(settingUpsert).toHaveBeenCalledWith(
       expect.objectContaining({ where: { key: "name" } }),
     );
@@ -112,8 +124,6 @@ describe("CMS action permissions", () => {
         data: expect.objectContaining({
           meta: expect.objectContaining({
             changedKeys: ["name"],
-            before: { name: settingsDefaults.name },
-            after: { name: "Edited Brand" },
           }),
         }),
       }),
@@ -126,10 +136,17 @@ describe("CMS action permissions", () => {
       ...contentRegistry["home.hero"].defaultValue,
       title: "Edited title",
     };
-    const result = await saveBlock({ key: "home.hero", value });
+    const result = await saveBlock({ key: "home.hero", value, revision: null });
     expect(result).toEqual({
       ok: true,
-      data: { key: "home.hero", changedKeys: ["title"] },
+      data: {
+        key: "home.hero",
+        changedKeys: ["title"],
+        revision: blockRevision({
+          updatedAt: new Date("2026-10-28T00:00:00.000Z"),
+          value,
+        }),
+      },
     });
     expect(blockUpsert).toHaveBeenCalled();
     expect(auditCreate).toHaveBeenCalledWith(
@@ -137,8 +154,6 @@ describe("CMS action permissions", () => {
         data: expect.objectContaining({
           meta: expect.objectContaining({
             changedKeys: ["title"],
-            before: { title: contentRegistry["home.hero"].defaultValue.title },
-            after: { title: "Edited title" },
           }),
         }),
       }),
@@ -150,5 +165,52 @@ describe("CMS action permissions", () => {
     expect(can({ role: "staff" }, "settings:write")).toBe(false);
     expect(can({ role: "user" }, "content:write")).toBe(false);
     expect(can({ role: "admin" }, "settings:write")).toBe(true);
+  });
+  it("rejects a stale settings revision before any mutation", async () => {
+    assertPermission.mockResolvedValue({ id: "admin-1", role: "admin" });
+    settingsRows.mockResolvedValue([
+      {
+        key: "name",
+        value: "Current",
+        updatedAt: new Date("2026-10-28T00:00:00.000Z"),
+      },
+    ]);
+    const result = await saveSettings({
+      value: settingsDefaults,
+      revision: emptyRevision,
+    });
+    expect(result.ok).toBe(false);
+    expect(settingUpsert).not.toHaveBeenCalled();
+    expect(settingDelete).not.toHaveBeenCalled();
+  });
+  it("rejects a stale content revision before any mutation", async () => {
+    assertPermission.mockResolvedValue({ id: "staff-1", role: "staff" });
+    blockRow.mockResolvedValue({
+      value: contentRegistry["home.hero"].defaultValue,
+      updatedAt: new Date("2026-10-28T00:00:00.000Z"),
+    });
+    const result = await saveBlock({
+      key: "home.hero",
+      value: contentRegistry["home.hero"].defaultValue,
+      revision: null,
+    });
+    expect(result.ok).toBe(false);
+    expect(blockUpsert).not.toHaveBeenCalled();
+  });
+  it("resets a JSON null content row", async () => {
+    assertPermission.mockResolvedValue({ id: "staff-1", role: "staff" });
+    blockRow.mockResolvedValue({
+      value: null,
+      updatedAt: new Date("2026-10-28T00:00:00.000Z"),
+    });
+    const result = await resetBlock({
+      key: "home.hero",
+      revision: blockRevision({
+        updatedAt: new Date("2026-10-28T00:00:00.000Z"),
+        value: null,
+      }),
+    });
+    expect(result.ok).toBe(true);
+    expect(blockDelete).toHaveBeenCalled();
   });
 });

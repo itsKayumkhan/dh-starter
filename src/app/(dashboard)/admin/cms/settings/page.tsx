@@ -8,7 +8,8 @@ import { getSettingsEditorData } from "@/modules/cms/server/queries";
 
 async function SettingsContent() {
   await requirePermission("settings:write");
-  const { value, rows, editors } = await getSettingsEditorData();
+  const { value, rows, editors, editable, revision } =
+    await getSettingsEditorData();
   const last = rows.sort(
     (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
   )[0];
@@ -26,7 +27,11 @@ async function SettingsContent() {
             : "Unknown"}
         </p>
       ) : null}
-      <SettingsForm initialValue={value} />
+      <SettingsForm
+        initialValue={value}
+        initialRevision={revision}
+        editable={editable}
+      />
     </main>
   );
 }
