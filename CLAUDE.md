@@ -44,6 +44,8 @@ Next.js 16 differs from older versions: check `node_modules/next/dist/docs/` bef
 - Registry lines in `src/config/modules.ts` and `src/config/module-lifecycle.ts` end with `// module:<id>`.
 - A module that stores user data exports `onUserDelete(userId)` from `src/modules/<id>/lifecycle.ts` and registers it in `src/config/module-lifecycle.ts`. Users are deleted only through Better Auth (self-service) or the admin delete action; both run these hooks before anything is deleted, and a failing hook blocks the deletion.
 - No circular imports, including type-only ones (`npm run check:circular`). Put shared types in their own file.
+- **A module is done only when it is tested.** Every logic file (`server/`, `schemas/`, `lifecycle.ts`, helpers, form components) has a unit test in the module that imports it, and the module has `tests/e2e/<id>.spec.ts`. `npm run check:module-tests` enforces this and runs in CI. A file with only types or one-line wiring starts with `// test-exempt: <reason>`. The same applies to every change to a module: new or changed behaviour gets new or updated tests in the same commit.
+- Unit tests cover, where it applies: the happy path (result, DB write, revalidate, audit entry); validation failures (missing, malformed, too long input returns field errors and writes nothing); anonymous and missing-permission callers denied; a denied rate limit; ownership (no access to another user's records); edge cases (empty, not found, already in that state, duplicates and idempotency, pagination bounds); and failures (a DB or provider error becomes a generic `ActionResult` error, nothing half-done stays). Form component tests cover rendering, server field and form errors, the pending state and the success state.
 - A new module is created with `/new-module`.
 
 ## 4. UI and UX: owned by each project, not by the starter
@@ -108,12 +110,12 @@ Technical rules that are not about design (they apply in every project):
 
 Run what applies and report the real result:
 
-| Change                          | Run                                                  |
-| ------------------------------- | ---------------------------------------------------- |
-| Any code                        | `npm run typecheck`, `npm run lint`, `npm run test`  |
-| Imports, new files, modules     | `npm run check:boundaries`, `npm run check:circular` |
-| Routes, layouts, config, deps   | `npm run build`                                      |
-| User flows (auth, forms, admin) | `npm run test:e2e` (needs `npm run db:dev`)          |
+| Change                          | Run                                                                                |
+| ------------------------------- | ---------------------------------------------------------------------------------- |
+| Any code                        | `npm run typecheck`, `npm run lint`, `npm run test`                                |
+| Imports, new files, modules     | `npm run check:boundaries`, `npm run check:circular`, `npm run check:module-tests` |
+| Routes, layouts, config, deps   | `npm run build`                                                                    |
+| User flows (auth, forms, admin) | `npm run test:e2e` (needs `npm run db:dev`)                                        |
 
 `/verify` runs all of them. Add tests for new reusable logic and components (Vitest + Testing Library next to the file; Playwright in `tests/e2e/`). A failing check is reported with its output, never hidden.
 

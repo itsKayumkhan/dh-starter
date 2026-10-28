@@ -18,7 +18,7 @@ Reusable Next.js full-stack starter for Digital Heroes projects. Clone it, set e
 | Uploads             | Cloudinary signed uploads (next-cloudinary)                                                                                                                                                                                          |
 | Payments            | Stripe (Checkout, subscriptions, customer portal, idempotent webhooks)                                                                                                                                                               |
 | Tests               | Vitest (unit), Playwright (e2e)                                                                                                                                                                                                      |
-| CI                  | GitHub Actions: lint, typecheck, boundary and cycle checks, unit tests, then a local Postgres (db:dev), migrate, seed, build and Playwright e2e                                                                                      |
+| CI                  | GitHub Actions: lint, typecheck, boundary, cycle and module-test checks, unit tests, then a local Postgres (db:dev), migrate, seed, build and Playwright e2e                                                                         |
 
 ## Core vs modules
 

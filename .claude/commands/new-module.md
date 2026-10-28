@@ -13,10 +13,11 @@ Create a new module for: $ARGUMENTS
    - `src/modules/<id>/routes.ts`, `env.ts` (lazy Zod), `server/` (queries returning DTOs, actions via `safeAction`), `components/`, `schemas/`, `README.md` (setup, env keys, how to remove).
    - `prisma/schema/<id>.prisma` if it needs tables (no back-relations into `auth.prisma`; user ids as plain indexed strings), then a migration.
    - Env keys in `.env.example` under `# --- <id> module ---` with a comment line above each key.
-   - Unit tests next to the logic, component tests for its forms, and `tests/e2e/<id>.spec.ts`.
+   - Unit tests next to every logic file and component tests for its forms, covering the cases in `CLAUDE.md` section 3 (happy path, validation, auth, rate limit, ownership, edge cases, failures), and `tests/e2e/<id>.spec.ts` for the main user flow.
    - Route paths named after `<id>` under `src/app/api/`, `src/app/(dashboard)/dashboard/`, `src/app/(dashboard)/admin/`, or `src/app/(marketing)/`.
 4. Register it in `src/config/modules.ts`: import line and array entry, both ending with `// module:<id>`.
    If it owns user data, export `onUserDelete(userId: string): Promise<void>` from `src/modules/<id>/lifecycle.ts` and register its import and array entry in `src/config/module-lifecycle.ts`, each ending with `// module:<id>`.
 5. If the module needs a new permission, add it to `src/lib/auth/permissions.ts` and say so.
-6. Prove it is removable: in a temp copy of the repo run `npx tsx scripts/module-remove.mts <id> --dry-run`, then run `/verify`.
-7. Add production-only items to `docs/PRODUCTION_CHECKLIST.md` under `## Module: <id>`. Finish with the CLAUDE.md completion report.
+6. Run `npm run check:module-tests` and `npx vitest run src/modules/<id>`; both pass before the module is done.
+7. Prove it is removable: in a temp copy of the repo run `npx tsx scripts/module-remove.mts <id> --dry-run`, then run `/verify`.
+8. Add production-only items to `docs/PRODUCTION_CHECKLIST.md` under `## Module: <id>`. Finish with the CLAUDE.md completion report.

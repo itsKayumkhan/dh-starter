@@ -1,3 +1,4 @@
+// test-exempt: types only
 import type { UploadFolder } from "@/modules/uploads/upload-rules";
 
 export type SignedUpload = {

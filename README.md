@@ -153,6 +153,7 @@ All keys are listed with a comment in [`.env.example`](.env.example). Module key
 | `npm run lint`, `typecheck`, `format`         | ESLint, TypeScript check, Prettier                                      |
 | `npm run check:boundaries`                    | Core must not import modules; modules only import declared dependencies |
 | `npm run check:circular`                      | No circular imports, including type-only ones                           |
+| `npm run check:module-tests`                  | Every module logic file has a unit test and every module an e2e spec    |
 | `npm run test`                                | Unit and component tests (Vitest)                                       |
 | `npm run test:e2e`                            | Browser tests (Playwright); needs `db:dev` and a local database         |
 | `npm run db:dev`                              | Local Postgres 17                                                       |
@@ -218,7 +219,7 @@ Removal stops when project code still imports the module (file and line are list
 
 - Unit and component tests next to the code (`*.test.ts`, `*.test.tsx`).
 - Playwright specs in `tests/e2e/`; they run only against a localhost app and a local database, and specs that need Stripe, Cloudinary or a real email provider skip with a reason when the keys are missing.
-- `/verify` in Claude Code runs typecheck, lint, boundary and cycle checks, unit tests and the build (`/verify e2e` adds Playwright).
+- `/verify` in Claude Code runs typecheck, lint, boundary, cycle and module-test checks, unit tests and the build (`/verify e2e` adds Playwright).
 - CI (`.github/workflows/ci.yml`) on every push and pull request: lint, typecheck, boundary and cycle checks, unit tests, then a local Postgres, migrate, seed, build and Playwright.
 - Pre-commit hook (Husky and lint-staged): Prettier and ESLint on staged files.
 - Bundle budget and measurement method: [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md).

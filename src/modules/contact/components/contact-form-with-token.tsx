@@ -1,3 +1,4 @@
+// test-exempt: server wrapper that passes a fresh token to ContactForm (both have their own tests)
 import { connection } from "next/server";
 import { getServerEnv } from "@/lib/env/server";
 import { ContactForm } from "@/modules/contact/components/contact-form";

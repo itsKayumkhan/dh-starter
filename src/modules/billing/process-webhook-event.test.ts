@@ -12,12 +12,10 @@ const event = {
 
 function fakes(): WebhookDependencies {
   return {
-    claim: vi
-      .fn()
-      .mockResolvedValue({
-        state: "claimed",
-        claimedAt: new Date("2026-01-01T00:00:00.000Z"),
-      }),
+    claim: vi.fn().mockResolvedValue({
+      state: "claimed",
+      claimedAt: new Date("2026-01-01T00:00:00.000Z"),
+    }),
     handle: vi.fn().mockResolvedValue(undefined),
     markProcessed: vi.fn().mockResolvedValue(undefined),
     markFailed: vi.fn().mockResolvedValue(undefined),

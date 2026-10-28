@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { formatMoney } from "@/modules/billing/format";
-import { billingPlans, findPlan, isConfiguredPrice, planIdFromPrice } from "@/modules/billing/plans";
+import {
+  billingPlans,
+  findPlan,
+  isConfiguredPrice,
+  planIdFromPrice,
+} from "@/modules/billing/plans";
 
 describe("billing plan selection", () => {
   it("maps known Stripe prices to local plans", () => {
     expect(findPlan(billingPlans[0].id)).toBe(billingPlans[0]);
-    expect(planIdFromPrice(billingPlans[1].stripePriceId)).toBe(billingPlans[1].id);
+    expect(planIdFromPrice(billingPlans[1].stripePriceId)).toBe(
+      billingPlans[1].id,
+    );
     expect(planIdFromPrice("price_unknown")).toBe("unknown");
   });
 

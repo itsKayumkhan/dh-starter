@@ -18,7 +18,9 @@ function batched(command) {
   };
 }
 
-export default {
+const config = {
   "*.{ts,tsx,js,mjs,cjs,mts,json,md,css,yml,yaml}": batched("prettier --write"),
   "*.{ts,tsx,js,mjs,cjs,mts}": batched("eslint --fix"),
 };
+
+export default config;
