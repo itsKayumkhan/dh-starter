@@ -128,7 +128,8 @@ beforeEach(() => {
 
 describe("saveMedia", () => {
   it("verifies and saves an avatar with an audit entry and cache refresh", async () => {
-    expect(await saveMedia(saveInput)).toMatchObject({
+    // Exact match: the DTO never carries ownerId, deletePendingAt or other internal columns.
+    expect(await saveMedia(saveInput)).toStrictEqual({
       ok: true,
       data: {
         id,

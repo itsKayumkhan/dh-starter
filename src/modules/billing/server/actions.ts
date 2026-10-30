@@ -125,8 +125,9 @@ const customerPortalAction = safeAction(
   async (_input, { user }) => {
     if (!user) throw new UnauthorizedError();
     const customer = await getOrCreateCustomer(user);
+    const url = await createPortalUrl(customer);
     revalidatePath(BILLING_ROUTES.dashboard);
-    return { url: await createPortalUrl(customer) };
+    return { url };
   },
 );
 

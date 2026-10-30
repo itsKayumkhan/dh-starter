@@ -1,6 +1,7 @@
 import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
+import { writeAudit } from "@/lib/audit";
 import { NotFoundError } from "@/lib/errors";
 import { inquiryStatusSchema } from "@/modules/contact/schemas/inquiry";
 import type { InquiryStatus } from "@/modules/contact/schemas/inquiry";
@@ -79,15 +80,33 @@ export async function getInquiry(id: string) {
   return toDto(record);
 }
 
-export async function setInquiryStatus(id: string, status: InquiryStatus) {
+/** Changes the status and writes the audit entry atomically. Returns false when it already had that status. */
+export async function setInquiryStatus(
+  id: string,
+  status: InquiryStatus,
+  audit: { actorId?: string | null; ip?: string | null },
+) {
   const parsed = inquiryStatusSchema.parse(status);
-  const existing = await db.inquiry.findUnique({
-    where: { id },
-    select: { status: true },
+  return db.$transaction(async (tx) => {
+    const existing = await tx.inquiry.findUnique({
+      where: { id },
+      select: { status: true },
+    });
+    if (!existing) throw new NotFoundError();
+    if (existing.status === parsed) return false;
+    await tx.inquiry.update({ where: { id }, data: { status: parsed } });
+    await writeAudit(
+      {
+        actorId: audit.actorId,
+        action: "inquiry.status_changed",
+        target: { type: "Inquiry", id },
+        meta: { previous: existing.status, status: parsed },
+        ip: audit.ip,
+      },
+      tx,
+    );
+    return true;
   });
-  if (!existing) throw new NotFoundError();
-  await db.inquiry.update({ where: { id }, data: { status: parsed } });
-  return existing.status;
 }
 
 export async function createInquiry(input: {

@@ -241,5 +241,10 @@ describe("billing actions", () => {
     expect(loggerError).toHaveBeenCalledOnce();
   });
 
-  it.todo("does not revalidate the billing page when portal creation fails");
+  it("does not revalidate the billing page when portal creation fails", async () => {
+    portalCreate.mockRejectedValue(new Error("private provider detail"));
+    const result = await openCustomerPortal();
+    expect(result).toEqual({ ok: false, error: MESSAGES.internal });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
 });

@@ -25,6 +25,7 @@ const mocks = vi.hoisted(() => ({
   update: vi.fn(),
   updateMany: vi.fn(),
   auditCreate: vi.fn(),
+  transaction: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({ unstable_rethrow: vi.fn() }));
@@ -39,6 +40,7 @@ vi.mock("@/lib/request", () => ({ getClientIp: mocks.getClientIp }));
 vi.mock("@/lib/logger", () => ({ logger: { error: mocks.loggerError } }));
 vi.mock("@/lib/db", () => ({
   db: {
+    $transaction: mocks.transaction,
     inquiry: {
       create: mocks.create,
       findUnique: mocks.findUnique,
@@ -117,6 +119,14 @@ beforeEach(() => {
   mocks.update.mockResolvedValue(inquiry);
   mocks.updateMany.mockResolvedValue({ count: 1 });
   mocks.auditCreate.mockResolvedValue({ id: "audit-1" });
+  // The transaction client exposes the same mocked tables; a throw inside rejects the transaction.
+  mocks.transaction.mockImplementation(
+    async (run: (tx: unknown) => Promise<unknown>) =>
+      run({
+        inquiry: { findUnique: mocks.findUnique, update: mocks.update },
+        auditLog: { create: mocks.auditCreate },
+      }),
+  );
 });
 
 function expectNoWrites() {
@@ -276,9 +286,19 @@ describe("submitInquiry", () => {
     );
   });
 
-  it.todo(
-    "does not leave a saved inquiry with pending delivery when status persistence fails",
-  );
+  it("confirms the saved inquiry when the delivery status write fails, so the visitor does not resubmit", async () => {
+    mocks.update.mockRejectedValue(new Error("database secret"));
+    expect(await submitInquiry(submission)).toEqual({
+      ok: true,
+      data: { id: "inquiry-1" },
+    });
+    expect(mocks.create).toHaveBeenCalledTimes(1);
+    expect(mocks.loggerError).toHaveBeenCalledWith(
+      "Inquiry email status write failed",
+      expect.objectContaining({ inquiryId: "inquiry-1" }),
+    );
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/admin/inquiries");
+  });
 });
 
 describe("changeInquiryStatus", () => {
@@ -360,10 +380,25 @@ describe("changeInquiryStatus", () => {
     expectNoWrites();
   });
 
-  it.todo(
-    "does not write or audit when the inquiry already has the requested status",
-  );
-  it.todo("rolls back the status change when the audit write fails");
+  it("does not write, audit or revalidate when the inquiry already has the requested status", async () => {
+    expect(
+      await changeInquiryStatus({ id: "inquiry-1", status: "new" }),
+    ).toEqual({ ok: true, data: { status: "new" } });
+    expect(mocks.update).not.toHaveBeenCalled();
+    expect(mocks.auditCreate).not.toHaveBeenCalled();
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("writes the status and the audit entry in one transaction, failing both when the audit fails", async () => {
+    mocks.auditCreate.mockRejectedValue(new Error("database secret"));
+    expect(await changeInquiryStatus(input)).toEqual({
+      ok: false,
+      error: MESSAGES.internal,
+    });
+    expect(mocks.transaction).toHaveBeenCalledTimes(1);
+    expect(mocks.update).toHaveBeenCalledTimes(1);
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
+  });
 });
 
 describe("resendInquiryEmail", () => {

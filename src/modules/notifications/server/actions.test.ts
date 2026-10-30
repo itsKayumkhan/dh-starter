@@ -194,7 +194,12 @@ describe("notification owner actions", () => {
 });
 
 describe("admin send action", () => {
-  it.todo("returns a userId field error for an ID longer than 255 characters");
+  it("returns a userId field error for an ID longer than 255 characters", async () => {
+    const result = await adminSend({ ...sendInput, userId: "x".repeat(256) });
+    expect(result).toMatchObject({ ok: false, error: MESSAGES.validation });
+    if (!result.ok) expect(result.fieldErrors?.userId).toBeDefined();
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
+  });
 
   it("sends to a user, audits the request, and revalidates", async () => {
     const result = await adminSend({ ...sendInput, href: "/dashboard" });

@@ -90,10 +90,18 @@ const submitAction = safeAction(
     await Promise.all(
       (["notification", "autoReply"] as const).map(async (channel, index) => {
         const result = deliveries[index];
+        // The inquiry is already saved: a failed status write stays "pending" and must not make
+        // the visitor resubmit (that would create a duplicate).
         await setInquiryEmailStatus(
           inquiry.id,
           channel,
           result?.status === "fulfilled" ? "sent" : "failed",
+        ).catch((error: unknown) =>
+          logger.error("Inquiry email status write failed", {
+            inquiryId: inquiry.id,
+            channel,
+            error,
+          }),
         );
         if (result?.status === "rejected")
           logger.error("Inquiry email delivery failed", {
@@ -118,16 +126,14 @@ const statusAction = safeAction(
     permission: "inquiries:read",
   },
   async ({ id, status }, { user, ip }) => {
-    const previous = await setInquiryStatus(id, status);
-    revalidatePath(CONTACT_ROUTES.inquiries);
-    revalidatePath(CONTACT_ROUTES.inquiry(id));
-    await writeAudit({
+    const changed = await setInquiryStatus(id, status, {
       actorId: user?.id,
-      action: "inquiry.status_changed",
-      target: { type: "Inquiry", id },
-      meta: { previous, status },
       ip,
     });
+    if (changed) {
+      revalidatePath(CONTACT_ROUTES.inquiries);
+      revalidatePath(CONTACT_ROUTES.inquiry(id));
+    }
     return { status };
   },
 );

@@ -2,6 +2,17 @@
 
 All notable changes to dh-starter. Versions follow semver (see `docs/STARTER_SYNC.md`).
 
+## 0.5.0 (2026-10-30)
+
+Every module is tested, and the gaps the new tests found are fixed. No migration.
+
+- `npm run check:module-tests` (CI and `/verify`): every module logic file has a unit test that imports it and every module has an e2e spec. Rule and required cases in `CLAUDE.md` section 3.
+- New unit tests for admin user forms, billing actions, customers, queries and webhook store, contact actions, notifications actions, queries and send form, uploads actions (405 unit tests in total).
+- Uploads: `toMediaDto` returns only DTO fields (it leaked `ownerId` and `deletePendingAt` to the client).
+- Contact: a status change and its audit entry are written in one transaction; setting the same status is a no-op; a failed email-status write after a saved inquiry no longer returns an error (which made visitors resubmit and duplicate the inquiry).
+- Notifications: `userId` is limited to 255 characters in the schema, so it returns a field error.
+- Billing: the billing page is revalidated only after the portal session is created.
+
 ## 0.4.0 (2026-10-28)
 
 Security audit fixes (12-area audit; 1 Critical, 21 High addressed). Migration: `20261028120000_security_audit` (backfills `Inquiry` email statuses).

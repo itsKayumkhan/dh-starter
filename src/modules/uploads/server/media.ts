@@ -35,7 +35,19 @@ export function toMediaDto(media: {
   alt: string | null;
   createdAt: Date;
 }): MediaDto {
-  return { ...media, createdAt: media.createdAt.toISOString() };
+  return {
+    id: media.id,
+    publicId: media.publicId,
+    url: media.url,
+    resourceType: media.resourceType,
+    format: media.format,
+    bytes: media.bytes,
+    width: media.width,
+    height: media.height,
+    folder: media.folder,
+    alt: media.alt,
+    createdAt: media.createdAt.toISOString(),
+  };
 }
 
 export async function findMedia(id: string) {
