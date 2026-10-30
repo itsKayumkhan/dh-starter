@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "check:boundaries": "node scripts/check-boundaries.mts",
     "check:module-tests": "node scripts/check-module-tests.mts",
     "check:circular": "madge --circular --extensions ts,tsx --ts-config tsconfig.json --exclude \"generated\" src",
