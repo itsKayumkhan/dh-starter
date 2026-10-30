@@ -68,6 +68,4 @@ test("staff sends an in-app notification to users", async ({ page }) => {
     .click();
   await deletion;
   await expect(page.getByRole("heading", { name: title })).toHaveCount(0);
-  // Let the post-delete refresh settle before Playwright closes this browser context.
-  await page.waitForLoadState("networkidle");
 });
