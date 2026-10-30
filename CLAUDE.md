@@ -68,6 +68,7 @@ Layout rules (every project, unless the client's approved design explicitly show
 
 - **No eyebrow labels** above headings: no "(01) Who we are", no small uppercase kicker, no dot + label pill. The heading carries the context itself.
 - **Text beside a heading only when it is needed.** By default there is no text on the right side of a heading; never add sub-text there just to fill space. Needed supporting text goes directly under the heading. It goes on the right only when putting it under the heading would break the layout, or when it comes together with a button or CTA (text and button sit together on the right). Buttons, CTAs, links and visuals beside a heading stay on the right; never stack them under it. Heroes keep their designed layout; only remove an eyebrow label there.
+- **Every screen size, including 4K**: every page works from 360px phones up to 4K monitors (2560 and 3840px wide). On large screens the content keeps a maximum width and stays centered (or the design scales deliberately); text lines never stretch across the whole screen, and the layout never looks like a small block lost in a corner. Images and backgrounds stay sharp on 4K and high-density screens (`next/image` with correct `sizes`, or large enough sources), and full-width sections still fill the screen. The design source decides the values; this rule only requires that 4K is handled.
 - **Step or count numbers ("01, 02") rarely**: only when the order is the real content, in one place only, never on both sides at once.
 
 Motion rules (every project with a UI):
