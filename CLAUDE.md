@@ -50,7 +50,7 @@ Next.js 16 differs from older versions: check `node_modules/next/dist/docs/` bef
 
 ## 4. UI and UX: owned by each project, not by the starter
 
-This repo gives **no UI or UX direction**. Every project has its own unique style, and any design rule from the starter would lower its quality.
+This repo gives **no visual style direction**. Every project has its own unique style, and any style rule from the starter would lower its quality. The only team-wide UI rules are the layout and motion rules at the end of this section.
 
 - The starter's current look (shadcn neutral theme, Geist font, sample marketing pages, dashboard layout) is a **throwaway placeholder**. It is not a reference, not a style guide and not a default to stay close to.
 - Fonts, colors, spacing, radius, layout, page structure, component and UI libraries, icons, imagery, motion and UX patterns are decided only by the project's own design source (Figma, the client's brand, a reference site, the designer, or a design skill). Follow that source fully. Never push back on a design because it differs from the starter, never keep starter visuals "for consistency", and never ask whether to keep the starter's look.
@@ -63,6 +63,20 @@ Technical rules that are not about design (they apply in every project):
 - Forms validate on the server through `safeAction` and show the field and form errors from the `ActionResult` (how they look is the project's choice).
 - Dates and numbers go through `src/lib/format.ts` (deterministic, prevents hydration mismatches).
 - No hardcoded project text, URLs or data inside reusable components: pass them as props or read them from settings and content.
+
+Layout rules (every project, unless the client's approved design explicitly shows otherwise):
+
+- **No eyebrow labels** above headings: no "(01) Who we are", no small uppercase kicker, no dot + label pill. The heading carries the context itself.
+- **Text beside a heading only when it is needed.** By default there is no text on the right side of a heading; never add sub-text there just to fill space. Needed supporting text goes directly under the heading. It goes on the right only when putting it under the heading would break the layout, or when it comes together with a button or CTA (text and button sit together on the right). Buttons, CTAs, links and visuals beside a heading stay on the right; never stack them under it. Heroes keep their designed layout; only remove an eyebrow label there.
+- **Step or count numbers ("01, 02") rarely**: only when the order is the real content, in one place only, never on both sides at once.
+
+Motion rules (every project with a UI):
+
+- **The design's own animation always wins.** Motion defined by the design, the reference, the spec or existing code is used exactly as-is: never replaced, re-timed or layered over.
+- Add motion only to fill gaps: components built from scratch with no motion spec, or elements left static with no guidance. Use the `transitions-dev` skill there when it is installed, otherwise a short, subtle standard transition.
+- One element, one owner per animated property: never stack a new transition on a property an existing animation already controls.
+- Everything added respects `prefers-reduced-motion`.
+- No project-wide motion polish or tokenization pass unless the user asks for it (`transitions-polish`).
 
 ## 5. Next.js rules
 
@@ -89,7 +103,7 @@ Technical rules that are not about design (they apply in every project):
 - Roles and permissions only through `src/lib/auth/permissions.ts` (`can(user, "users:read")`). No scattered `role === "admin"` checks.
 - Rate limit public and sensitive actions with the core limiter. Uploads are always signed and checked server-side. Webhooks verify the signature and claim the event id before processing.
 - Secrets stay server-side; only `NEXT_PUBLIC_*` reaches the client. Never log secrets, tokens or personal data (use `@/lib/logger`, never `console.log`).
-- Emails: branded React Email templates using `src/lib/email/templates/components/layout.tsx` and the site settings; send only through `sendEmail()`. Never plain text only.
+- **Emails are always branded HTML, never plain text** (plain text only as the alternative part of a multipart message). Every email (contact and lead notifications, auto-replies, order and booking confirmations, password and verification mails, invoices, admin alerts) uses a React Email template on `src/lib/email/templates/components/layout.tsx`, takes its colors, fonts, logo and button style from the project's site settings, and is sent only through `sendEmail()`. Each has a brand header, a clear title, the data in a readable table or card, a primary action button and a footer with the business name, address and a one-line note. HTML rules: tables for layout, inline CSS only, no external CSS or JS, max width about 600px, web-safe font fallbacks, alt text on images, readable when images are blocked.
 
 ## 8. Admin, CMS and content
 
@@ -125,8 +139,15 @@ Run what applies and report the real result:
 - Anything that must change before go-live (test keys, placeholder copy, demo data, seed logins, dev fallbacks) gets a line in `docs/PRODUCTION_CHECKLIST.md` in the same commit: `- [ ] **<file:line>** - <what to change> + <why>`.
 - Seed or test logins use the project's own domain (`admin@<domain>`) with a memorable password built from the brand name, dev and staging only.
 - **No suggestions in the repo.** Docs, READMEs, comments and command files state what exists and the mandatory rules only: no recommendations, alternatives or other tools to consider, follow-up ideas or "nice to have" lists. Give advice in the chat; the session working on a project decides the rest.
-- Never use em dash or en dash characters (the long dashes) anywhere: code, comments, UI copy, docs. Use a comma, colon, parentheses or a plain hyphen.
-- Commits: conventional messages (`feat(billing): ...`). Do not push unless the user asks.
+- **No long dashes.** Never use em dash or en dash characters (U+2014, U+2013) anywhere: code, comments, UI copy, emails, docs, chat replies. Use a comma, period, colon, parentheses or a plain hyphen. Plain hyphens in compound words and codes are fine.
+
+Git rules:
+
+- **Never work directly on `main`.** `main` is the default branch (never `master`). Start every task on a branch created from `main` (`feat/<name>`, `fix/<name>`, `chore/<name>`); the user merges.
+- Commit each finished logical chunk without asking, with a conventional message (`feat(billing): ...`).
+- **Never run `git push`.** The user pushes when ready.
+- **No AI attribution**: no `Co-Authored-By: Claude` (or any Claude or Anthropic trailer) and no "Generated with Claude Code" lines in commits or pull request descriptions.
+- Never override the git author (`git -c user.name=... -c user.email=...`); the terminal's git config is used.
 - **Starter sync**: every project records the starter version it was created from in `STARTER_VERSION`. When you fix a bug or improve anything generic (core, shared components, a module) inside a client project, flag it in your report as "port to starter" and follow `docs/STARTER_SYNC.md`, so the next project gets the fix. Project-specific code never goes back to the starter.
 
 ## 12. Completion report
