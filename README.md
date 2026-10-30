@@ -2,6 +2,8 @@
 
 Reusable Next.js full-stack starter for Digital Heroes projects. Every client or internal project starts as a copy of this repo: auth, roles, email, uploads, payments, CMS, admin, security and tests are already built and tested, and each project adds its own features and design on top.
 
+Created and maintained by **Kayum Khan** ([itsKayumkhan](https://github.com/itsKayumkhan)) for **Digital Heroes**.
+
 Version: see [`STARTER_VERSION`](STARTER_VERSION) and [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Contents
@@ -20,6 +22,7 @@ Version: see [`STARTER_VERSION`](STARTER_VERSION) and [`CHANGELOG.md`](CHANGELOG
 12. [Security defaults](#12-security-defaults)
 13. [Working with Claude Code](#13-working-with-claude-code)
 14. [Documentation](#14-documentation)
+15. [Credits](#15-credits)
 
 ## 1. Tech stack
 
@@ -277,3 +280,10 @@ Removal stops when project code still imports the module (file and line are list
 | [`docs/STARTER_SYNC.md`](docs/STARTER_SYNC.md)                 | Porting fixes between projects and the starter                   |
 | [`CHANGELOG.md`](CHANGELOG.md)                                 | Changes per starter version                                      |
 | `src/modules/<id>/README.md`                                   | Setup and env keys of each module                                |
+
+## 15. Credits
+
+- **Author:** Kayum Khan ([github.com/itsKayumkhan](https://github.com/itsKayumkhan)), who designed and built dh-starter and maintains it.
+- **Made for:** Digital Heroes, whose client and internal projects start from this repo.
+
+Projects created from the starter keep this credit in their `README.md`.

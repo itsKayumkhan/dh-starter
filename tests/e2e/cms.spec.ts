@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { contentRegistry } from "@/config/content";
 import { CMS_ROUTES } from "@/modules/cms/routes";
 import { ROUTES } from "@/lib/constants/routes";

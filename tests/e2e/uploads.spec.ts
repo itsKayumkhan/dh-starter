@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { UPLOAD_ROUTES } from "@/modules/uploads/routes";
 import { hasCloudinaryE2eEnv } from "@/lib/env/test";
 import { ROUTES } from "@/lib/constants/routes";

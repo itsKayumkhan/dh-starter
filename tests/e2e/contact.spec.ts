@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { hasContactE2EEnv } from "@/modules/contact/env";
 import { CONTACT_ROUTES } from "@/modules/contact/routes";
 import { hasContactE2eTransport } from "@/lib/env/test";

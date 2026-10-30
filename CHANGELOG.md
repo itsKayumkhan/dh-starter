@@ -2,6 +2,12 @@
 
 All notable changes to dh-starter. Versions follow semver (see `docs/STARTER_SYNC.md`).
 
+## 0.5.1 (2026-10-30)
+
+- `npm run build` passes without a reachable database: settings and content blocks return their defaults inside the cache scope with a one-minute cache (`FALLBACK_CACHE_LIFE`), so pages pick up the stored values within a minute once the database is reachable. The logger timestamp no longer uses the current time API that Next.js rejects during prerendering.
+- E2E: rate-limit counters are reset before every test (`tests/e2e/fixtures.ts`, local database only), so sign-in limits no longer make results depend on timing. Specs import `test` and `expect` from `./fixtures`.
+- Credits: created and maintained by Kayum Khan for Digital Heroes (README, `package.json` author).
+
 ## 0.5.0 (2026-10-30)
 
 Every module is tested, and the gaps the new tests found are fixed. No migration.

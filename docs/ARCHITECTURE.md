@@ -1,6 +1,6 @@
 # dh-starter architecture
 
-Reusable Next.js full-stack starter for Digital Heroes projects. Clone it, set env, remove the modules a project does not need, build the project-specific features on top.
+Reusable Next.js full-stack starter for Digital Heroes projects, created and maintained by Kayum Khan. Clone it, set env, remove the modules a project does not need, build the project-specific features on top.
 
 ## Stack
 

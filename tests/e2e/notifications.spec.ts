@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { getNotificationsE2ePrerequisites } from "@/modules/notifications/env";
 import { NOTIFICATION_ROUTES } from "@/modules/notifications/routes";
 import { ROUTES } from "@/lib/constants/routes";
@@ -57,8 +57,10 @@ test("staff sends an in-app notification to users", async ({ page }) => {
   await page.getByRole("link", { name: "Read", exact: true }).click();
   await expect(page.getByRole("heading", { name: title })).toBeVisible();
   await notification.getByRole("button", { name: "Delete" }).click();
-  const deletion = page.waitForResponse((response) =>
-    new URL(response.url()).pathname === NOTIFICATION_ROUTES.list && response.request().method() === "POST",
+  const deletion = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === NOTIFICATION_ROUTES.list &&
+      response.request().method() === "POST",
   );
   await page
     .getByRole("alertdialog")

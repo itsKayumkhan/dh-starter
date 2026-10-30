@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { ROUTES } from "@/lib/constants/routes";
 import { AUTH_ROUTES } from "@/components/auth/routes";
 

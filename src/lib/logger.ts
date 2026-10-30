@@ -20,7 +20,11 @@ function write(
   const line = JSON.stringify({
     level,
     message,
-    timestamp: new Date().toISOString(),
+    // performance time, not new Date(): Next.js rejects the current time while prerendering, and
+    // the settings fallback logs during a build without a database.
+    timestamp: new Date(
+      performance.timeOrigin + performance.now(),
+    ).toISOString(),
     ...(redact(context ?? {}) as object),
   });
   if (level === "error") console.error(line);

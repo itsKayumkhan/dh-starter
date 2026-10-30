@@ -2,18 +2,20 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { site } from "@/config/site";
 import { contentRegistry } from "@/config/content";
 
-const { findMany, findUnique, warn } = vi.hoisted(() => ({
+const { cacheLife, findMany, findUnique, warn } = vi.hoisted(() => ({
+  cacheLife: vi.fn(),
   findMany: vi.fn(),
   findUnique: vi.fn(),
   warn: vi.fn(),
 }));
-vi.mock("next/cache", () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
+vi.mock("next/cache", () => ({ cacheLife, cacheTag: vi.fn() }));
 vi.mock("@/lib/db", () => ({
   db: { siteSetting: { findMany }, contentBlock: { findUnique } },
 }));
 vi.mock("@/lib/logger", () => ({ logger: { warn } }));
 
 import {
+  FALLBACK_CACHE_LIFE,
   getSiteSettings,
   mergeSettings,
   readSiteSettings,
@@ -46,9 +48,16 @@ describe("site settings", () => {
     findMany.mockRejectedValue(new Error("offline"));
     expect((await getSiteSettings()).name).toBe(site.name);
   });
-  it("does not return a cacheable settings fallback on database failure", async () => {
+  it("caches stored settings for hours", async () => {
+    findMany.mockResolvedValueOnce([{ key: "name", value: "Stored" }]);
+    expect((await readSiteSettings()).name).toBe("Stored");
+    expect(cacheLife).toHaveBeenCalledExactlyOnceWith("hours");
+  });
+  it("keeps the settings fallback for one minute only, without throwing (a build without a database passes)", async () => {
     findMany.mockRejectedValueOnce(new Error("offline"));
-    await expect(readSiteSettings()).rejects.toThrow("offline");
+    expect((await readSiteSettings()).name).toBe(site.name);
+    expect(cacheLife).toHaveBeenCalledExactlyOnceWith(FALLBACK_CACHE_LIFE);
+    expect(FALLBACK_CACHE_LIFE.revalidate).toBeLessThanOrEqual(60);
   });
   it("returns stored settings immediately after an outage recovers", async () => {
     findMany
@@ -83,9 +92,12 @@ describe("content blocks", () => {
       contentRegistry["home.hero"].defaultValue,
     );
   });
-  it("does not return a cacheable content fallback on database failure", async () => {
+  it("keeps the content fallback for one minute only, without throwing", async () => {
     findUnique.mockRejectedValueOnce(new Error("offline"));
-    await expect(readContent("home.hero")).rejects.toThrow("offline");
+    expect(await readContent("home.hero")).toEqual(
+      contentRegistry["home.hero"].defaultValue,
+    );
+    expect(cacheLife).toHaveBeenCalledExactlyOnceWith(FALLBACK_CACHE_LIFE);
   });
   it("returns stored content immediately after an outage recovers", async () => {
     findUnique

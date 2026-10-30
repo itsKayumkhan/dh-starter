@@ -1,6 +1,7 @@
 {
   "name": "dh-starter",
   "version": "0.1.0",
+  "author": "Kayum Khan (https://github.com/itsKayumkhan)",
   "private": true,
   "scripts": {
     "dev": "next dev",

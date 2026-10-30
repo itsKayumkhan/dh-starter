@@ -7,6 +7,7 @@ import {
   type ContentValue,
 } from "@/config/content";
 import { db } from "@/lib/db";
+import { FALLBACK_CACHE_LIFE } from "@/lib/content/settings";
 import { logger } from "@/lib/logger";
 
 export function parseContent<K extends ContentKey>(
@@ -25,12 +26,20 @@ export async function readContent<K extends ContentKey>(
   key: K,
 ): Promise<ContentValue<K>> {
   "use cache";
-  cacheLife("hours");
   cacheTag(`content:${key}`);
-  const row = await db.contentBlock.findUnique({
-    where: { key },
-    select: { value: true },
-  });
+  let row: { value: unknown } | null;
+  try {
+    row = await db.contentBlock.findUnique({
+      where: { key },
+      select: { value: true },
+    });
+  } catch (error) {
+    // Same as readSiteSettings: defaults for a minute while the database is unreachable.
+    cacheLife(FALLBACK_CACHE_LIFE);
+    logger.warn("Content block unavailable, using default", { key, error });
+    return parseContent(key, null);
+  }
+  cacheLife("hours");
   return parseContent(key, row?.value);
 }
 

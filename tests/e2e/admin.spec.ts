@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { hasLocalAdminE2ESetup } from "@/modules/admin/env";
 import { ADMIN_ROUTES } from "@/modules/admin/routes";
 import { ROUTES } from "@/lib/constants/routes";
