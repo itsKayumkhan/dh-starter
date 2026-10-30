@@ -196,11 +196,28 @@ docs/                     architecture, modules, performance, production checkli
 
 ## 9. Starting a client project
 
-1. Copy this repository for the project.
+The starter lives at `github.com/itsKayumkhan/dh-starter` (private template repository). A project is an independent copy: it never pushes to, pulls from or stays connected to the starter repo.
+
+1. Create the project repository from the starter. Either:
+   - **From GitHub (no link to the starter):**
+     ```bash
+     gh repo create <owner>/<project> --private --template itsKayumkhan/dh-starter --clone
+     cd <project>
+     ```
+   - **From a local clone (cut the connection before any work):**
+     ```bash
+     git clone https://github.com/itsKayumkhan/dh-starter.git <project>
+     cd <project>
+     git remote remove origin
+     git remote add origin https://github.com/<owner>/<project>.git
+     ```
+     `git remote -v` must show only the project repository, never `dh-starter`.
+     Then run `npm install` and copy `.env.example` to `.env`.
 2. Open it in Claude Code and run `/new-project <name> <domain>`. It confirms the modules to keep and removes the others, sets brand defaults in `src/config/site.ts`, gives the project its own local database in `DATABASE_URL`, changes the seed logins to the project domain, records the starter version in `STARTER_VERSION`, and runs `/verify`.
 3. Apply the project's own design: the starter look is a placeholder.
 4. Fill the real keys in `.env` for the modules kept.
-5. Before go-live, complete every item in [`docs/PRODUCTION_CHECKLIST.md`](docs/PRODUCTION_CHECKLIST.md).
+5. Commit and push to the project repository only.
+6. Before go-live, complete every item in [`docs/PRODUCTION_CHECKLIST.md`](docs/PRODUCTION_CHECKLIST.md).
 
 ## 10. Adding and removing modules
 

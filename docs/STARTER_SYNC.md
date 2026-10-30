@@ -2,6 +2,10 @@
 
 Every client project is a copy of dh-starter. Without a sync habit, after ten projects there are ten different starters and the same bug gets fixed ten times.
 
+## Separate repositories
+
+The starter repository (`github.com/itsKayumkhan/dh-starter`) and every project repository are separate. A project never has the starter as a git remote, so project code can never be pushed to the starter. Fixes reach the starter only through the porting steps below, made in a clone of the starter.
+
 ## Version tracking
 
 - The starter has a version in `STARTER_VERSION` (semver) and a `CHANGELOG.md`.
@@ -20,7 +24,7 @@ Project-specific code (features in `src/features`, content, brand, project modul
 ## Starter to project (pulling an update)
 
 1. Read `CHANGELOG.md` entries newer than the project's `STARTER_VERSION`.
-2. Apply the relevant changes (cherry-pick the starter commits or copy the files), resolve conflicts in favor of the project's own customizations.
+2. Apply the relevant changes (copy the changed files from a separate clone of the starter, or fetch it once with `git fetch https://github.com/itsKayumkhan/dh-starter.git main` and cherry-pick, without adding it as a remote), resolve conflicts in favor of the project's own customizations.
 3. Run migrations if the entry says so, run `/verify`, and update the project's `STARTER_VERSION`.
 
 Breaking changes must say in the changelog exactly what a project has to change.
